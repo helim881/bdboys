@@ -33,11 +33,20 @@ export default function PostCard({
           {post.excerpt}
         </p>
         <div className="flex items-center gap-4 text-[11px] text-gray-400 mt-2 font-medium">
-          <span>👤 {post.author}</span>
-          <span>📅 {post.date}</span>
-          <span className="bg-gray-100 px-2 py-0.5 rounded text-[#003366]">
-            ❤️ {post.likes}
-          </span>
+          <div className="flex items-center gap-4 text-[11px] text-gray-400 mt-3 font-medium">
+            <span>👤 {post.author?.name || "Admin"}</span>
+            <span>
+              📅{" "}
+              {new Date(post.createdAt).toLocaleDateString("bn-BD", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </span>
+            <span className="bg-blue-50 px-2 py-0.5 rounded text-[#003366]">
+              ❤️ {post.views || 0}
+            </span>
+          </div>
         </div>
       </div>
     </div>
