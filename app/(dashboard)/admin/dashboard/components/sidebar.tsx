@@ -14,7 +14,7 @@ const Sidebar = () => {
     <div className="flex flex-col h-full bg-[#0f172a] border-r border-slate-800">
       {/* Brand Logo */}
       <div className="h-20 flex items-center px-6 border-b border-slate-800/50">
-        <Link href={"/.git/"} className="flex items-center gap-3">
+        <Link href={"/"} className="flex items-center gap-3">
           <span className="text-white font-bold tracking-tight text-lg">
             BD <span className="text-slate-500 font-medium">boys</span>
           </span>

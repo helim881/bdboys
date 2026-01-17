@@ -9,7 +9,7 @@ import {
 export const menuItems = [
   {
     href: "/",
-    label: "হোম", // 'HOme' fixed to 'হোম'
+    label: "হোম",
     icon: Home,
   },
   {
