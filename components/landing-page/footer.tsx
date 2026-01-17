@@ -36,9 +36,6 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <div className="flex items-center space-x-3 mb-4">
-              <div className="h-10 w-10 rounded-lg bg-gradient-to-r from-red-600 to-rose-500 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">B</span>
-              </div>
               <span className="text-2xl font-bold">BDBOYS</span>
             </div>
             <p className="text-gray-400">

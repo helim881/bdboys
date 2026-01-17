@@ -1,11 +1,5 @@
 // types/common.ts
-export type UserRole =
-  | "USER"
-  | "SUPER_ADMIN"
-  | "EDITOR"
-  | "AUTHOR"
-  | "CONTRIBUTOR"
-  | "USER";
+export type UserRole = "USER" | "ADMIN" | "EDITOR" | "AUTHOR" | "USER";
 
 export interface SearchParams {
   search?: string;

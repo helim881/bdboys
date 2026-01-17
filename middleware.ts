@@ -1,51 +1,50 @@
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
+import { UserRole } from "./types/common";
 
-// Map your Prisma Enums to the URL paths
-const ROLE_PATHS: Record<string, string> = {
-  USER: "/user",
-  ADMIN: "/admin",
-  SUPER_ADMIN: "/admin", // Super admin uses admin routes
-  AUTHOR: "/author",
-  EDITOR: "/editor",
+const DASHBOARDS: Record<UserRole, string> = {
+  USER: "/user/dashboard",
+  AUTHOR: "/author/dashboard",
+  ADMIN: "/admin/dashboard",
+  EDITOR: "/editor/dashboard",
 };
 
+// প্রোটেক্টেড রুটগুলো ছোট হাতের অক্ষরে ম্যাপ করা (URL-এর সাথে মিলানোর জন্য)
+const PROTECTED_PREFIXES = Object.keys(DASHBOARDS).map((role) =>
+  role.toLowerCase(),
+);
+
 export async function middleware(req: NextRequest) {
-  const token = await getToken({ req });
   const { pathname } = req.nextUrl;
+  const token = await getToken({ req });
 
-  // 1. Define all root folders that require protection
-  const protectedPaths = ["/user", "/admin", "/author", "/editor"];
-  const isProtectedArea = protectedPaths.some((path) =>
-    pathname.startsWith(path),
-  );
+  // token.role যদি বড় হাতের থাকে (ADMIN), তবে তাকে string হিসেবে নিয়ে রাখা
+  const userRole = token?.role as UserRole;
 
-  // 2. If NOT logged in and trying to access ANY protected route
-  if (isProtectedArea && !token) {
-    const signInUrl = new URL("/auth", req.url);
-
-    return NextResponse.redirect(signInUrl);
+  // ১. লগইন করা ইউজারকে /auth পেজ থেকে সরিয়ে দেওয়া
+  if (token && pathname.startsWith("/auth")) {
+    const dashboardUrl = DASHBOARDS[userRole] || "/";
+    return NextResponse.redirect(new URL(dashboardUrl, req.url));
   }
 
-  // 3. If LOGGED IN
-  if (token) {
-    const userRole = (token.role as string).toUpperCase();
-    const allowedPath = ROLE_PATHS[userRole];
+  // ২. প্রোটেক্টড রুট চেক করা (যেমন: /admin/..., /user/...)
+  const matchedPrefix = PROTECTED_PREFIXES.find((prefix) =>
+    pathname.startsWith(`/${prefix}`),
+  );
 
-    // Redirect away from auth pages if already logged in
-    if (pathname.startsWith("/auth")) {
-      return NextResponse.redirect(
-        new URL(`${allowedPath}/dashboard`, req.url),
-      );
+  if (matchedPrefix) {
+    // লগইন করা না থাকলে /auth পেজে পাঠানো
+    if (!token) {
+      const signInUrl = new URL("/auth", req.url);
+      signInUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(signInUrl);
     }
 
-    // ROLE ENFORCEMENT:
-    // If user is in a protected area that doesn't belong to their role
-    // Example: Role is 'USER', but pathname starts with '/admin'
-    if (isProtectedArea && !pathname.startsWith(allowedPath)) {
-      return NextResponse.redirect(
-        new URL(`${allowedPath}/dashboard`, req.url),
-      );
+    // ৩. রোল ভিত্তিক এক্সেস কন্ট্রোল (Case-insensitive check)
+    // ইউজারের রোল যদি 'ADMIN' হয় আর সে যদি '/admin' রুটে থাকে তবে ঢুকতে দাও
+    if (matchedPrefix !== userRole.toLowerCase()) {
+      const fallbackUrl = DASHBOARDS[userRole] || "/";
+      return NextResponse.redirect(new URL(fallbackUrl, req.url));
     }
   }
 
@@ -53,5 +52,8 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    // স্ট্যাটিক ফাইল এবং ইন্টারনাল রুট বাদ দিয়ে সব রুট চেক করবে
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|css|js)$).*)",
+  ],
 };

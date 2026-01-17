@@ -1,13 +1,7 @@
 "use client";
 
-import {
-  ChevronRight,
-  FilePlus,
-  LayoutDashboard,
-  LogOut,
-  MessageCircle,
-  Users,
-} from "lucide-react";
+import { menuItems } from "@/config/menus";
+import { ChevronRight, LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -16,39 +10,15 @@ const Sidebar = () => {
   const pathname = usePathname();
   const { data: session } = useSession();
 
-  const menuItems = [
-    {
-      href: "/admin/category",
-      label: "ক্যাটেগরি",
-      icon: LayoutDashboard,
-    },
-    {
-      href: "/admin/subcategory",
-      label: "সাব-ক্যাটেগরি",
-      icon: LayoutDashboard,
-    },
-    {
-      href: "/admin/posts",
-      label: "পোস্ট ম্যানেজমেন্ট",
-      icon: LayoutDashboard,
-    },
-    { href: "/admin/posts/create", label: "নতুন পোস্ট তৈরি", icon: FilePlus },
-    { href: "/admin/users", label: "ব্যবহারকারী", icon: Users },
-    { href: "/admin/sms", label: "এসএমএস", icon: MessageCircle },
-  ];
-
   return (
     <div className="flex flex-col h-full bg-[#0f172a] border-r border-slate-800">
       {/* Brand Logo */}
       <div className="h-20 flex items-center px-6 border-b border-slate-800/50">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center font-black text-white shadow-lg shadow-red-600/20">
-            S
-          </div>
+        <Link href={"/.git/"} className="flex items-center gap-3">
           <span className="text-white font-bold tracking-tight text-lg">
-            SMS <span className="text-slate-500 font-medium">Admin</span>
+            BD <span className="text-slate-500 font-medium">boys</span>
           </span>
-        </div>
+        </Link>
       </div>
 
       {/* Navigation */}

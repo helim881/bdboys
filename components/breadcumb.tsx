@@ -1,4 +1,3 @@
-// components/common/Breadcrumb.tsx
 "use client";
 
 import { ChevronRight, Home } from "lucide-react";
@@ -8,8 +7,11 @@ import { usePathname } from "next/navigation";
 export default function Breadcrumb() {
   const pathname = usePathname();
 
-  // Split path into segments and remove empty strings
-  const pathSegments = pathname.split("/").filter((item) => item !== "");
+  // ১. স্লাইস করার পর প্রতিটি সেগমেন্টকে decodeURIComponent দিয়ে ডিকোড করুন
+  const pathSegments = pathname
+    .split("/")
+    .filter((item) => item !== "")
+    .map((segment) => decodeURIComponent(segment));
 
   return (
     <nav aria-label="Breadcrumb" className="mb-4">
@@ -21,16 +23,24 @@ export default function Breadcrumb() {
             className="flex items-center hover:text-[#003366] transition-colors"
           >
             <Home size={14} className="mr-1" />
-            <span>Home</span>
+            <span>হোম</span> {/* আপনি চাইলে 'Home' ও রাখতে পারেন */}
           </Link>
         </li>
 
         {pathSegments.map((segment, index) => {
-          const href = `/${pathSegments.slice(0, index + 1).join("/")}`;
+          // ইউআরএল তৈরির সময় আবার এনকোড করার প্রয়োজন নেই কারণ ব্রাউজার এটি অটো করে নেয়,
+          // তবে স্লাগগুলো সঠিক অর্ডারে জয়েন করতে হবে।
+          const href = `/${pathSegments
+            .slice(0, index + 1)
+            .map((s) => encodeURIComponent(s)) // লিঙ্কের জন্য এনকোড করা নিরাপদ
+            .join("/")}`;
+
           const isLast = index === pathSegments.length - 1;
 
-          // Capitalize first letter of the segment
-          const label = segment.charAt(0).toUpperCase() + segment.slice(1);
+          // ২. লেবেল ফরম্যাটিং: ইংরেজি হলে প্রথম অক্ষর বড় হাতের হবে, বাংলা হলে যা আছে তাই থাকবে
+          const label = segment.match(/[a-zA-Z]/)
+            ? segment.charAt(0).toUpperCase() + segment.slice(1)
+            : segment;
 
           return (
             <li key={href} className="flex items-center">

@@ -1,6 +1,7 @@
 "use client";
 
-import { Bell, Menu, X } from "lucide-react";
+import { menuItems } from "@/config/menus";
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -24,10 +25,6 @@ const MobileHeader = ({
           <Menu size={22} />
         </button>
         <span className="font-bold text-slate-900">Admin Panel</span>
-        <button className="p-2 text-slate-600 relative">
-          <Bell size={20} />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-        </button>
       </header>
 
       {/* Slide-over Drawer */}
@@ -58,12 +55,7 @@ const MobileHeader = ({
           </div>
 
           <nav className="p-4 space-y-2">
-            {[
-              { href: "/admin/posts", label: "পোস্ট ম্যানেজমেন্ট" },
-              { href: "/admin/posts/create", label: "নতুন পোস্ট তৈরি" },
-              { href: "/admin/users", label: "ব্যবহারকারী" },
-              { href: "/admin/stats", label: "পরিসংখ্যান" },
-            ].map((item) => (
+            {menuItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}

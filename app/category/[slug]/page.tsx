@@ -8,7 +8,7 @@ export default async function CategoryPage({
 }: {
   params: { slug: string };
 }) {
-  const { slug } = params;
+  const slug = decodeURIComponent(params.slug);
 
   const category = await prisma.category.findUnique({
     where: { slug },

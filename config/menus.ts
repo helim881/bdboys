@@ -1,64 +1,50 @@
 import {
-  Image,
-  Phone,
-  PlayCircle,
-  ShoppingCart,
+  FilePlus,
+  Home,
+  LayoutDashboard,
+  MessageCircle,
   Users,
-  Wallet,
 } from "lucide-react";
 
-export interface MenuItemProps {
-  title?: string;
-  icon?: React.ElementType;
-  href?: string;
-  child?: MenuItemProps[];
-  megaMenu?: MenuItemProps[];
-  multi_menu?: MenuItemProps[];
-  nested?: MenuItemProps[];
-  onClick?: () => void;
-  isHeader?: boolean;
-}
-
-export const menus = [
+export const menuItems = [
   {
-    title: "login ",
-    href: "",
+    href: "/",
+    label: "হোম", // 'HOme' fixed to 'হোম'
+    icon: Home,
   },
-];
-export const adminConfig: MenuItemProps[] = [
   {
-    title: "Users",
+    href: "/admin/dashboard",
+    label: "ড্যাশবোর্ড", // Added label for Dashboard
+    icon: LayoutDashboard,
+  },
+  {
+    href: "/admin/category",
+    label: "ক্যাটেগরি",
+    icon: LayoutDashboard,
+  },
+  {
+    href: "/admin/subcategory",
+    label: "সাব-ক্যাটেগরি",
+    icon: LayoutDashboard,
+  },
+  {
+    href: "/admin/posts",
+    label: "পোস্ট পরিচালনা", // 'ম্যানেজমেন্ট' can be 'পরিচালনা' for better Bangla
+    icon: LayoutDashboard,
+  },
+  {
+    href: "/admin/posts/create",
+    label: "নতুন পোস্ট", // Simplified 'নতুন পোস্ট তৈরি' to 'নতুন পোস্ট'
+    icon: FilePlus,
+  },
+  {
+    href: "/admin/users",
+    label: "ব্যবহারকারী",
     icon: Users,
-    href: "users",
   },
   {
-    title: "Packages",
-    icon: ShoppingCart,
-    href: "packages",
-  },
-  {
-    title: "Payment Requests",
-    icon: Wallet,
-    href: "transactions",
-  },
-  // {
-  //   title: "Payment Requests",
-  //   icon: Wallet,
-  //   href: "payment-request",
-  // },
-  {
-    title: "Numbers",
-    icon: Phone,
-    href: "numbers",
-  },
-  {
-    title: "Ads",
-    icon: PlayCircle,
-    href: "ads",
-  },
-  {
-    title: "Banners",
-    icon: Image,
-    href: "banners",
+    href: "/admin/sms",
+    label: "এসএমএস",
+    icon: MessageCircle,
   },
 ];
