@@ -1,8 +1,44 @@
 import Breadcrumb from "@/components/breadcumb";
 import prisma from "@/lib/db";
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import SubcategoryWithPost from "../components/subcategoryWithPost";
 
+// ১. মেটাডেটা জেনারেটর ফাংশন
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  const slug = decodeURIComponent(params.slug);
+
+  const category = await prisma.category.findFirst({
+    where: {
+      OR: [{ slug: slug }, { slug: params.slug }],
+    },
+  });
+
+  if (!category) {
+    return {
+      title: "Category Not Found | BDBOYS",
+    };
+  }
+
+  return {
+    title: `${category.name} `,
+    description:
+      category.description || `${category.name} সম্পর্কিত সকল খবর এবং পোস্ট।`,
+    openGraph: {
+      title: `${category.name} - BDBOYS`,
+      description:
+        category.description || `${category.name} ক্যাটেগরির পোস্টসমূহ।`,
+      type: "website",
+    },
+    // যদি ক্যাটেগরির জন্য কোনো ইমেজ থাকে তবে সেটি এখানে দিতে পারেন
+  };
+}
+
+// ২. মূল পেজ কম্পোনেন্ট
 export default async function CategoryPage({
   params,
 }: {
@@ -10,8 +46,10 @@ export default async function CategoryPage({
 }) {
   const slug = decodeURIComponent(params.slug);
 
-  const category = await prisma.category.findUnique({
-    where: { slug },
+  const category = await prisma.category.findFirst({
+    where: {
+      OR: [{ slug: slug }, { slug: params.slug }],
+    },
     include: {
       subCategories: {
         include: {
@@ -40,10 +78,9 @@ export default async function CategoryPage({
         </p>
       </div>
 
-      {/* Subcategories Loop */}
       <div className="space-y-12">
         {category.subCategories.map((sub) => (
-          <SubcategoryWithPost category={sub} />
+          <SubcategoryWithPost key={sub.id} category={sub} />
         ))}
       </div>
     </main>
