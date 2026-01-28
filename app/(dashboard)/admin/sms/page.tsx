@@ -30,7 +30,7 @@ const SmsListPage = () => {
     try {
       // API থেকে ডাটা ফেচ (Pagination এবং Status সহ)
       const res = await fetch(
-        `/api/sms?page=${page}&limit=10&status=${status}`
+        `/api/sms?page=${page}&limit=10&status=${status} `,
       );
       const result = await res.json();
 

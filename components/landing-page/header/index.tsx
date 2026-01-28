@@ -2,36 +2,60 @@
 
 import { ChevronDown, LayoutDashboard, LogOut } from "lucide-react"; // লুসাইড আইকন ব্যবহার করলে দেখতে ভালো লাগে
 import { signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-export default function Header() {
+export default function Header({
+  logo,
+  siteName,
+}: {
+  logo?: string | null;
+  siteName?: string;
+}) {
   const { data: session, status } = useSession();
   const [isOpen, setIsOpen] = useState(false);
-
   const getDashboardUrl = () => {
-    const role = session?.user?.role || "ADMIN";
+    const role = (session?.user?.role as keyof typeof routes) || "ADMIN";
+
     const routes = {
       USER: "/user/dashboard",
       AUTHOR: "/author/dashboard",
       ADMIN: "/admin/dashboard",
       EDITOR: "/editor/dashboard",
     };
+
     return routes[role] || "/";
   };
 
   return (
-    <header className="bg-[#003366] text-white relative">
+    <header className=" border   relative">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <Link href="/" className="text-2xl font-bold tracking-tighter">
-          BDBOYS
+        <Link href="/" className="flex items-center gap-2">
+          {logo ? (
+            <div className="relative h-8 w-32">
+              {" "}
+              {/* Adjust width/height as needed */}
+              <Image
+                src={logo}
+                alt={siteName || "Logo"}
+                fill
+                className="object-contain object-left"
+                priority
+              />
+            </div>
+          ) : (
+            <span className="text-2xl font-bold tracking-tighter">
+              {siteName || "BDBOYS"}
+            </span>
+          )}
         </Link>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center text-white gap-4">
           {status === "loading" ? (
             <div className="h-6 w-16 bg-white/10 animate-pulse rounded"></div>
           ) : session ? (
-            <div className="relative">
+            <div className="relative text-gray-700">
               {/* ড্রপডাউন ট্রিগার বাটন */}
               <button
                 onClick={() => setIsOpen(!isOpen)}
@@ -99,7 +123,7 @@ export default function Header() {
       </div>
 
       {/* নেভিগেশন বার */}
-      <nav className="bg-[#333333] border-t border-gray-600">
+      <nav className="bg-[#333333] text-white border-t border-gray-600">
         <ul className="container mx-auto px-4 flex gap-6 text-[11px] py-2.5 uppercase font-medium">
           <li className="hover:text-blue-400 transition-colors">
             <Link href="/">Home</Link>

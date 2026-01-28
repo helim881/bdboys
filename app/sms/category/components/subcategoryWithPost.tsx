@@ -1,13 +1,7 @@
 import PostCard from "@/components/landing-page/post-card";
 import Link from "next/link";
 
-export default function SubcategoryWithPost({
-  category,
-  slug,
-}: {
-  category: any;
-  slug: string;
-}) {
+export default function SubcategoryWithPost({ category }: { category: any }) {
   return (
     <section
       key={category.id}
@@ -19,7 +13,7 @@ export default function SubcategoryWithPost({
           {category.name}
         </h2>
         <Link
-          href={`/category/${slug}/${category?.slug}`}
+          href={`/sub-categories/${category.slug}`}
           className="text-blue-600 text-sm hover:underline font-semibold"
         >
           আরও দেখুন →

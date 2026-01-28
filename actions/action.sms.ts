@@ -6,41 +6,38 @@ import { revalidatePath } from "next/cache";
 
 // ১. তৈরি করা (Create)
 export async function createSmsAction(data: {
+  title: string; // Add this
   content: string;
   categoryId: string;
   subCategoryId?: string;
   authorId: string;
 }) {
   try {
-    // কন্টেন্টের প্রথম অংশ দিয়ে একটি ইউনিক স্লাগ তৈরি (যেহেতু এসএমএসের টাইটেল নেই)
-    const baseSlug = data.content
-      .slice(0, 30)
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^\u0980-\u09FFa-zA-Z0-0-]+/g, "");
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, error: "Unauthorized" };
 
-    const slug = `${baseSlug}-${Date.now()}`;
+    // Use Title for slug, fallback to content if empty
+    const slugBase = data.title || data.content.slice(0, 20);
+    const slug = `${slugBase.trim().toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`;
 
     await prisma.sms.create({
       data: {
+        title: data.title,
         content: data.content,
         slug: slug,
         categoryId: data.categoryId,
         subCategoryId: data.subCategoryId || null,
-        authorId: data.authorId,
+        authorId: session.user.id,
         status: "PUBLISHED",
       },
     });
 
-    revalidatePath("/admin/sms");
+    revalidatePath("/sms/[slug]/[sub]", "layout");
     return { success: true };
-  } catch (error: any) {
-    console.error("SMS_CREATE_ERROR:", error);
-    return { success: false, error: "এসএমএস তৈরি করা সম্ভব হয়নি।" };
+  } catch (error) {
+    return { success: false, error: "Submission failed" };
   }
 }
-
 // ২. আপডেট করা (Update)
 export async function updateSmsAction(
   id: string,
@@ -49,7 +46,7 @@ export async function updateSmsAction(
     categoryId: string;
     subCategoryId?: string;
     status: PostStatus;
-  }
+  },
 ) {
   try {
     await prisma.sms.update({
@@ -79,5 +76,84 @@ export async function deleteSmsAction(id: string) {
   } catch (error: any) {
     console.error("SMS_DELETE_ERROR:", error);
     return { success: false, error: "মুছে ফেলা সম্ভব হয়নি।" };
+  }
+}
+
+import { authOptions } from "@/app/api/auth/option";
+import { getServerSession } from "next-auth";
+
+// Action for Like/Dislike
+export async function toggleSmsAction(smsId: string, type: "LIKE" | "DISLIKE") {
+  try {
+    if (type === "LIKE") {
+      await prisma.sms.update({
+        where: { id: smsId },
+        data: { likeCount: { increment: 1 } },
+      });
+    } else {
+      await prisma.sms.update({
+        where: { id: smsId },
+        data: { disLikeCount: { increment: 1 } },
+      });
+    }
+
+    // Refresh the data on the current page
+    revalidatePath("/sms/[slug]", "layout");
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "Failed to update action" };
+  }
+}
+
+// Action for Delete
+export async function deleteSms(smsId: string) {
+  const session = await getServerSession(authOptions);
+
+  // 1. Check if session exists
+  if (!session || !session.user) {
+    return { error: "You must be logged in to delete." };
+  }
+
+  // 2. Fetch SMS to check ownership
+  const sms = await prisma.sms.findUnique({
+    where: { id: smsId },
+    select: { authorId: true }, // Only fetch what we need
+  });
+
+  if (!sms) return { error: "SMS not found" };
+
+  // 3. Robust Permission Check
+  const userRole = session.user.role;
+  const userId = session.user.id;
+
+  // Use an array to check for high-level permissions
+  const hasPrivilege = ["SUPER_ADMIN", "ADMIN", "EDITOR"].includes(userRole);
+  const isOwner = userId === sms.authorId;
+
+  console.log("Debug Auth:", {
+    userRole,
+    userId,
+    smsAuthorId: sms.authorId,
+    hasPrivilege,
+    isOwner,
+  });
+
+  if (!hasPrivilege && !isOwner) {
+    return { error: "Unauthorized: You don't have permission." };
+  }
+
+  try {
+    // 4. Perform Delete
+    await prisma.sms.delete({ where: { id: smsId } });
+
+    // 5. Revalidate
+    // Use the actual path if possible, or the specific dynamic route
+    revalidatePath("/sms/[slug]", "layout");
+    revalidatePath("/sms/[slug]/[sub]", "layout");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Delete Error:", error);
+    return { error: "Database error occurred." };
   }
 }

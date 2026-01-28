@@ -14,6 +14,7 @@ export async function generateMetadata({
 
   const category = await prisma.category.findFirst({
     where: {
+      type: "SMS",
       OR: [{ slug: slug }, { slug: params.slug }],
     },
   });
@@ -55,7 +56,6 @@ export default async function CategoryPage({
         include: {
           posts: {
             where: { status: "PUBLISHED" },
-
             take: 5,
             orderBy: { createdAt: "desc" },
           },
@@ -81,7 +81,7 @@ export default async function CategoryPage({
 
       <div className="space-y-12">
         {category.subCategories.map((sub) => (
-          <SubcategoryWithPost key={sub.id} category={sub} slug={slug} />
+          <SubcategoryWithPost key={sub.id} category={sub} />
         ))}
       </div>
     </main>

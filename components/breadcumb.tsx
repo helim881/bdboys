@@ -23,7 +23,7 @@ export default function Breadcrumb() {
             className="flex items-center hover:text-[#003366] transition-colors"
           >
             <Home size={14} className="mr-1" />
-            <span>হোম</span> {/* আপনি চাইলে 'Home' ও রাখতে পারেন */}
+            <span>Home</span> {/* আপনি চাইলে 'Home' ও রাখতে পারেন */}
           </Link>
         </li>
 

@@ -13,7 +13,7 @@ export default function RecentPost() {
       try {
         const response = await fetch("/api/posts?limit=5");
         const data = await response.json();
-        setPosts(data);
+        setPosts(data.posts);
       } catch (error) {
         console.error("Failed to fetch recent posts:", error);
       } finally {

@@ -65,8 +65,12 @@ const CategoriesPage = () => {
                 নাম
               </th>
               <th className="border border-gray-200 px-4 py-2 text-left">
+                ক্যাটেগরি type
+              </th>
+              <th className="border border-gray-200 px-4 py-2 text-left">
                 সাব-ক্যাটেগরি
               </th>
+
               <th className="border border-gray-200 px-4 py-2 text-center">
                 অ্যাকশন
               </th>
@@ -77,6 +81,9 @@ const CategoriesPage = () => {
               <tr key={cat.id} className="hover:bg-gray-50">
                 <td className="border border-gray-200 px-4 py-2 font-medium">
                   {cat.name}
+                </td>
+                <td className="border border-gray-200 px-4 py-2 font-medium">
+                  {cat.type}
                 </td>
                 <td className="border border-gray-200 px-4 py-2">
                   {cat.subCategories?.length || 0} টি

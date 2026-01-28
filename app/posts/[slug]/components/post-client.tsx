@@ -2,6 +2,7 @@
 
 import RecentPost from "@/components/recentpost";
 import { Calendar, Eye, Heart } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 
 const PostClientView = ({ post }: { post: any }) => {
@@ -14,13 +15,15 @@ const PostClientView = ({ post }: { post: any }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white font-sans">
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="container">
         <article className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 mb-8">
           {/* Featured Image */}
           <div className="relative h-96 overflow-hidden">
-            <img
+            <Image
               src={post.image || "https://via.placeholder.com/1200x600"}
               alt={post.title}
+              width={600}
+              height={600}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>

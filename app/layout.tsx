@@ -1,3 +1,4 @@
+import prisma, { getSiteSettings } from "@/lib/db";
 import AuthProvider from "@/provider/auth.provicer";
 import { Poppins } from "next/font/google";
 import { Toaster } from "react-hot-toast";
@@ -13,71 +14,46 @@ const poppins = Poppins({
   display: "swap",
 });
 // app/layout.tsx
+import Footer from "@/components/landing-page/footer";
+import Header from "@/components/landing-page/header";
 import type { Metadata } from "next";
 import "./assets/scss/globals.scss";
 
 // app/layout.tsx
 
-export const metadata: Metadata = {
-  title: {
-    default: "Bdboys | Best SMS, Love Quotes & Latest News",
-    template: "%s | Bdboys",
-  },
-  description:
-    "Discover the best collection of Bengali SMS, Love Quotes, Status updates, and the latest trending news on Bdboys.",
+export async function generateMetadata(): Promise<Metadata> {
+  // Fetch global settings (id: 1 is your admin settings row)
+  const settings = await prisma.setting.findFirst({
+    where: { id: 1 },
+  });
 
-  applicationName: "Bdboys",
-  keywords: [
-    "Bengali SMS",
-    "Love SMS",
-    "Valobashar Status",
-    "Bangla News",
-    "Social Media Status",
-    "Bangla Quotes",
-    "Bdboys posts",
-  ],
+  // Fetch count of categories for dynamic description
+  const categoryCount = await prisma.category.count({
+    where: { type: "POST" },
+  });
 
-  // Favicon & Icons
-  icons: {
-    icon: "/icons/icon-192x192.png",
-    shortcut: "/favicon.ico",
-    apple: "/icons/icon-192x192.png",
-  },
+  const siteName = settings?.siteName || "BDBOYS.top";
 
-  // Open Graph (Social Media Sharing)
-  openGraph: {
-    type: "website",
-    url: "https://bdboys.site", // Updated to reflect your branding
-    title: "Bdboys — Ultimate Bangla SMS & News Portal",
+  return {
+    title: `Post Portal - ${siteName}`,
     description:
-      "Find the perfect SMS for your loved ones and stay updated with trending news.",
-    siteName: "Bdboys",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Bdboys - SMS and News Platform",
-      },
-    ],
-  },
+      settings?.description ||
+      `Explore articles across ${categoryCount} categories on ${siteName}.`,
+    keywords: settings?.keywords,
+    openGraph: {
+      title: `Post Portal | ${siteName}`,
+      description: settings?.description,
+      images: settings?.siteLogo ? [settings.siteLogo] : [],
+    },
+  };
+}
 
-  twitter: {
-    card: "summary_large_image",
-    title: "Bdboys — Best SMS & News",
-    description:
-      "Get the latest Bengali SMS, love quotes, and daily news updates.",
-    images: ["/og-image.png"],
-  },
-
-  manifest: "/manifest.json",
-};
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const settings = await getSiteSettings();
   return (
     <html
       lang="en"
@@ -100,8 +76,9 @@ export default function RootLayout({
       <AuthProvider>
         <body className={`${poppins.className}  `}>
           <main className="container">
-            {/* <Header /> */}
+            <Header logo={settings?.siteLogo} siteName={settings?.siteName} />
             {children}
+            <Footer logo={settings?.siteLogo} siteName={settings?.siteName} />
           </main>
 
           <Toaster />

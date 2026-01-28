@@ -1,12 +1,19 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-const Footer = () => {
+const Footer = ({
+  logo,
+  siteName,
+}: {
+  logo?: string | null;
+  siteName?: string;
+}) => {
   const router = useRouter();
 
   const { data: session } = useSession();
@@ -31,14 +38,30 @@ const Footer = () => {
   }, []);
 
   return (
-    <footer className="bg-gray-900 text-white mt-12">
+    <footer className="bg-gray-900/10   mt-12">
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <div className="flex items-center space-x-3 mb-4">
-              <span className="text-2xl font-bold">BDBOYS</span>
-            </div>
-            <p className="text-gray-400">
+            <Link href="/" className="flex items-center gap-2">
+              {logo ? (
+                <div className="relative h-8 w-32">
+                  {" "}
+                  {/* Adjust width/height as needed */}
+                  <Image
+                    src={logo}
+                    alt={siteName || "Logo"}
+                    fill
+                    className="object-contain object-left"
+                    priority
+                  />
+                </div>
+              ) : (
+                <span className="text-2xl font-bold tracking-tighter">
+                  {siteName || "BDBOYS"}
+                </span>
+              )}
+            </Link>
+            <p className="text-gray-600">
               বাংলা ভাষা ও সংস্কৃতির প্রসারে নিবেদিত একটি প্লাটফর্ম। যেখানে
               পাঠকরা পাবেন মানসম্মত লেখা, গবেষণা ও বিনোদন।
             </p>
@@ -51,7 +74,7 @@ const Footer = () => {
                 <li key={idx}>
                   <Link
                     href={`/category/${cat.slug}`}
-                    className="text-gray-400 hover:text-white transition-colors"
+                    className="text-gray-600 hover:text-white transition-colors"
                   >
                     {cat.name}
                   </Link>
@@ -65,7 +88,7 @@ const Footer = () => {
             <div className="flex space-x-3">
               <a
                 href="#"
-                className="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors"
+                className="h-10 w-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-700 transition-colors"
               >
                 <span className="sr-only">Facebook</span>
                 <svg
@@ -78,7 +101,7 @@ const Footer = () => {
               </a>
               <a
                 href="#"
-                className="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors"
+                className="h-10 w-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-700 transition-colors"
               >
                 <span className="sr-only">Twitter</span>
                 <svg
@@ -91,7 +114,7 @@ const Footer = () => {
               </a>
               <a
                 href="#"
-                className="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors"
+                className="h-10 w-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-700 transition-colors"
               >
                 <span className="sr-only">YouTube</span>
                 <svg
@@ -106,10 +129,10 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-600">
           <p>© ২০২৪ বাংলাভাষা. সমস্ত অধিকার সংরক্ষিত।</p>
           <p className="mt-2 text-sm">
-            মade with ❤️ for Bangla language lovers
+            Made with ❤️ for Bangla language lovers
           </p>
         </div>
       </div>

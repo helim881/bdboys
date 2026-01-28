@@ -27,13 +27,7 @@ export default function SmsCategoryView({
       {/* 2. Top Featured SMS in this Category */}
       <div className="px-4 py-2 divide-y divide-gray-100">
         {topSms.map((sms) => (
-          <SmsCard
-            key={sms.id}
-            content={sms.content}
-            categoryName={categoryName}
-            author={sms.author}
-            categoryLink="#"
-          />
+          <SmsCard key={sms.id} sms={sms} />
         ))}
       </div>
 

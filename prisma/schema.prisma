@@ -157,15 +157,26 @@ model Sms {
   authorId      String       @map("author_id")
   author        User         @relation(fields: [authorId], references: [id])
 
-  status    PostStatus @default(PUBLISHED)
-  views     Int        @default(0)
-  likeCount Int        @default(0) @map("like_count")
+  status       PostStatus @default(PUBLISHED)
+  views        Int        @default(0)
+  likeCount    Int        @default(0) @map("like_count")
+  disLikeCount Int        @default(0) @map("dislike_count")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([categoryId])
   @@map("sms_messages")
+}
+
+model Setting {
+  id          Int      @id @default(1)
+  siteName    String   @default("BDBOYS.top")
+  siteLogo    String? // URL from Cloudinary
+  description String   @default("Best Bangla SMS Collection")
+  keywords    String   @default("sms, bangla, tunes")
+  facebookUrl String?
+  updatedAt   DateTime @updatedAt
 }
 
 // ============== Enums ==============

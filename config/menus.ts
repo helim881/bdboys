@@ -3,6 +3,7 @@ import {
   Home,
   LayoutDashboard,
   MessageCircle,
+  Settings,
   Users,
 } from "lucide-react";
 
@@ -14,7 +15,7 @@ export const menuItems = [
   },
   {
     href: "/admin/dashboard",
-    label: "ড্যাশবোর্ড", // Added label for Dashboard
+    label: "ড্যাশবোর্ড",
     icon: LayoutDashboard,
   },
   {
@@ -46,5 +47,10 @@ export const menuItems = [
     href: "/admin/sms",
     label: "এসএমএস",
     icon: MessageCircle,
+  },
+  {
+    href: "/admin/settings",
+    label: "এসএমএস",
+    icon: Settings,
   },
 ];

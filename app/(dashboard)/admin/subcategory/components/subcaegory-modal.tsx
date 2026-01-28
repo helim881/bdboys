@@ -86,7 +86,7 @@ const SubCategoryModal = ({ onClose, onSuccess, initialData }: any) => {
               </option>
               {categories.map((c: any) => (
                 <option key={c.id} value={c.id}>
-                  {c.name}
+                  {c.name} ({c.type})
                 </option>
               ))}
             </select>
