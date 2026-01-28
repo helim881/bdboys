@@ -50,7 +50,7 @@ export const menuItems = [
   },
   {
     href: "/admin/settings",
-    label: "এসএমএস",
+    label: "সেটিংস",
     icon: Settings,
   },
 ];
