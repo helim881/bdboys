@@ -15,6 +15,7 @@ export default function ClientComponent({ subcategory }: ClientComponentProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const session = useSession();
+  console.log(subcategory);
   // Check user login session
   useEffect(() => {
     setIsLoggedIn(!!session?.data?.user);
@@ -51,8 +52,8 @@ export default function ClientComponent({ subcategory }: ClientComponentProps) {
               {subcategory.posts[0].subCategoryId &&
                 subcategory?.posts[0].categoryId && (
                   <CreatePost
-                    subCategoryId={subcategory.posts[0].subCategoryId}
-                    categoryId={subcategory?.posts[0].categoryId}
+                    subCategoryId={subcategory?.id}
+                    categoryId={subcategory?.categoryId}
                     setIsCreating={setIsCreating}
                   />
                 )}

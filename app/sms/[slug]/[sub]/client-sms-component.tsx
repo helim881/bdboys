@@ -18,6 +18,7 @@ type SubCategory = {
   name: string;
   slug: string;
   sms: Sms[];
+  categoryId: string;
 };
 
 export default function ClientCmsComponent({
@@ -80,8 +81,8 @@ export default function ClientCmsComponent({
           </div>
         ) : (
           <CreateSms
-            categoryId={subCategoryData.sms[0].categoryId}
-            subCategoryId={subCategoryData.sms[0].subCategoryId}
+            categoryId={subCategoryData?.categoryId}
+            subCategoryId={subCategoryData?.id}
             setIsCreating={setIsCreating}
           />
         )}

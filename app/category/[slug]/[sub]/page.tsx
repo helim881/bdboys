@@ -19,6 +19,7 @@ export type SubCategory = {
   slug: string;
   category: { id: string; name: string; slug: string };
   posts: Post[];
+  categoryId: string;
 };
 
 export default async function SubCategoryPage({

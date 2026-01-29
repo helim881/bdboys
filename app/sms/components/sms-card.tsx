@@ -53,13 +53,13 @@ export default function SmsCard({
       <div className="p-2 bg-white">
         <div className="text-[14px] leading-[1.4] text-black">
           <span className="text-red-600 font-bold mr-1">{index + 1})</span>
-          {sms.content}
+          {sms?.content}
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border border-gray-300">
             {sms?.author?.image ? (
               <img
-                src={sms.author.image}
+                src={sms?.author?.image}
                 alt=""
                 className="w-full h-full object-cover"
               />
@@ -85,7 +85,7 @@ export default function SmsCard({
           onClick={() => handleAction("LIKE")}
           className="hover:underline active:text-blue-500 disabled:text-gray-400"
         >
-          Like ({sms.likeCount || 0})
+          Like ({sms?.likeCount || 0})
         </button>
         <span className="text-gray-300">-</span>
         <button
@@ -93,7 +93,7 @@ export default function SmsCard({
           onClick={() => handleAction("DISLIKE")}
           className="hover:underline active:text-red-500 disabled:text-gray-400"
         >
-          Dislike ({sms.dislikeCount || 0})
+          Dislike ({sms?.dislikeCount || 0})
         </button>
         <span className="text-gray-300">-</span>
         <button className="hover:underline">Send This</button>
