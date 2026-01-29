@@ -9,3 +9,7 @@ export interface SearchParams {
   page?: string | number;
   limit?: string | number;
 }
+export type ApiResponse<T> = {
+  success: boolean;
+  data: T;
+};

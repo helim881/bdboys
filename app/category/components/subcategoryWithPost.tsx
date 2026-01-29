@@ -8,6 +8,7 @@ export default function SubcategoryWithPost({
   category: any;
   slug: string;
 }) {
+  console.log(category);
   return (
     <section
       key={category.id}

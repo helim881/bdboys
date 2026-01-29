@@ -1,12 +1,42 @@
 import Breadcrumb from "@/components/breadcumb";
-import prisma from "@/lib/db";
+import ErrorPage from "@/components/error/error";
+import { getSiteSettings } from "@/lib/db";
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
-import SubcategoryWithPost from "../components/subcategoryWithPost";
+import CategoryClientComponent from "./client-component";
 
-// এই লাইনটি নিশ্চিত করবে যে প্রতিবার রিকোয়েস্টে নতুন ডাটা আসবে
+// প্রতিবার request এ নতুন ডাটা আনবে
 export const dynamic = "force-dynamic";
 
+type Post = {
+  id: string;
+  title: string;
+  slug: string;
+};
+
+type SubCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  posts: Post[];
+};
+
+export type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  subCategories: SubCategory[];
+};
+
+type ApiResponse<T> = {
+  success: boolean;
+  data: T;
+  message?: string;
+};
+
+/* =======================
+   SEO METADATA
+======================= */
 export async function generateMetadata({
   params,
 }: {
@@ -14,22 +44,38 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const slug = decodeURIComponent(params.slug);
 
-  const category = await prisma.category.findFirst({
-    where: {
-      OR: [{ slug: slug }, { slug: params.slug }],
-    },
-  });
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/${slug}`,
+      { cache: "no-store" },
+    );
+    const siteconfig = await getSiteSettings();
+    if (!res.ok) throw new Error("Failed to fetch category");
 
-  if (!category) {
-    return { title: "Category Not Found | BDBOYS" };
+    const result: ApiResponse<Category> = await res.json();
+
+    if (!result.success || !result.data) throw new Error("Category not found");
+
+    const readableName = result.data.name || slug.replace(/-/g, " ");
+
+    return {
+      title: `${readableName} | ${siteconfig?.siteName}`,
+      description:
+        siteconfig?.description ||
+        `${readableName} সম্পর্কিত সর্বশেষ খবর ও আপডেট।`,
+    };
+  } catch (error) {
+    console.error("METADATA_FETCH_ERROR:", error);
+    return {
+      title: "Category Not Found | BDBOYS",
+      description: "Requested category could not be found.",
+    };
   }
-
-  return {
-    title: `${category.name} | BDBOYS`,
-    description: category.description || `${category.name} সম্পর্কিত সকল খবর।`,
-  };
 }
 
+/* =======================
+   PAGE COMPONENT
+======================= */
 export default async function CategoryPage({
   params,
 }: {
@@ -37,50 +83,31 @@ export default async function CategoryPage({
 }) {
   const slug = decodeURIComponent(params.slug);
 
-  const category = await prisma.category.findFirst({
-    where: {
-      OR: [{ slug: slug }, { slug: params.slug }],
-    },
-    include: {
-      subCategories: {
-        include: {
-          posts: {
-            where: { status: "PUBLISHED" },
-            take: 5,
-            orderBy: { createdAt: "desc" },
-            // অথর বা অন্য ডাটা লাগলে এখানে ইনক্লুড করতে পারেন
-          },
-        },
-      },
-    },
-  });
+  let category: Category | null = null;
 
-  if (!category) {
-    notFound();
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/${slug}`,
+      { cache: "no-store" },
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch category");
+
+    const result: ApiResponse<Category> = await res.json();
+
+    if (!result.success || !result.data) throw new Error("Category not found");
+
+    category = result.data;
+  } catch (error) {
+    console.error("CATEGORY_FETCH_ERROR:", error);
+    return <ErrorPage />;
   }
 
   return (
     <main className="container mx-auto px-4 py-8">
       <Breadcrumb />
 
-      <header className="mb-10 border-b-4 border-[#003366] pb-2">
-        <h1 className="text-3xl font-bold text-[#003366]">{category.name}</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          {category.description || `${category.name} সম্পর্কিত সকল খবর`}
-        </p>
-      </header>
-
-      <div className="space-y-12">
-        {category.subCategories.length > 0 ? (
-          category.subCategories.map((sub) => (
-            <SubcategoryWithPost key={sub.id} category={sub} slug={slug} />
-          ))
-        ) : (
-          <p className="text-center text-gray-400 py-10">
-            কোনো সাব-ক্যাটাগরি পাওয়া যায়নি।
-          </p>
-        )}
-      </div>
+      <CategoryClientComponent category={category} slug={slug} />
     </main>
   );
 }

@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: { slug: string } },
 ) {
   try {
-    const { id } = params;
+    const { slug } = params;
     const { searchParams } = new URL(request.url);
 
     // পেজিনেশন প্যারামিটার
@@ -15,26 +15,30 @@ export async function GET(
     const skip = (page - 1) * limit;
 
     // ১. মোট সাব-ক্যাটাগরি সংখ্যা বের করা (মেটার জন্য)
-    const totalSubcategories = await prisma.subCategory.count({
-      where: { categoryId: id },
+    const totalSubcategories = await prisma.category.count({
+      where: { slug },
     });
 
     // ২. সাব-ক্যাটাগরি এবং পোস্ট ফেচ করা
-    const subcategories = await prisma.subCategory.findMany({
-      where: { categoryId: id },
-      skip: skip,
-      take: limit,
+    const subcategories = await prisma.category.findUnique({
+      where: { slug },
+
       include: {
-        posts: {
-          where: { status: "PUBLISHED" },
-          take: 5,
-          orderBy: { createdAt: "desc" },
-          include: {
-            author: { select: { name: true } },
+        subCategories: {
+          select: {
+            slug: true,
+            name: true,
+            posts: {
+              where: { status: "PUBLISHED" },
+              take: 5,
+              orderBy: { createdAt: "desc" },
+              include: {
+                author: { select: { name: true } },
+              },
+            },
           },
         },
       },
-      orderBy: { createdAt: "asc" }, // অথবা আপনার পছন্দমতো
     });
 
     const totalPages = Math.ceil(totalSubcategories / limit);

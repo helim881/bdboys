@@ -45,7 +45,6 @@ export default function SmsCard({
       if (result?.error) alert(result.error);
     });
   };
-  console.log(sms);
 
   return (
     <div

@@ -5,10 +5,10 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } },
+  { params }: { params: { slug: string; slub: string } },
 ) {
   try {
-    const { slug } = params;
+    const { slub } = params;
     const { searchParams } = new URL(request.url);
 
     // Pagination params
@@ -16,12 +16,19 @@ export async function GET(
     const limit = Number(searchParams.get("limit")) || 10;
     const skip = (page - 1) * limit;
 
-    // 1️⃣ Fetch subcategory by slug
-    const subCategory = await prisma.subCategory.findUnique({
-      where: { slug },
+    const subcategoriesSms = await prisma.subCategory.findUnique({
+      where: { slug: slub },
+      include: {
+        category: true,
+        sms: {
+          where: { status: "PUBLISHED" },
+          orderBy: { createdAt: "desc" },
+          include: { author: { select: { name: true } } },
+        },
+      },
     });
 
-    if (!subCategory) {
+    if (!subcategoriesSms) {
       return NextResponse.json(
         { success: false, message: "Subcategory not found" },
         { status: 404 },
@@ -31,36 +38,16 @@ export async function GET(
     // 2️⃣ Count total posts
     const totalPosts = await prisma.post.count({
       where: {
-        subCategoryId: subCategory.id,
+        subCategoryId: subcategoriesSms.id,
         status: "PUBLISHED",
       },
     });
-
-    // 3️⃣ Fetch paginated posts
-    const posts = await prisma.post.findMany({
-      where: {
-        subCategoryId: subCategory.id,
-        status: "PUBLISHED",
-      },
-      skip,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-      include: {
-        author: { select: { id: true, name: true } },
-      },
-    });
-
-    // 4️⃣ Attach posts to subCategory object
-    const subCategoryWithPosts = {
-      ...subCategory,
-      posts,
-    };
 
     const totalPages = Math.ceil(totalPosts / limit);
 
     return NextResponse.json({
       success: true,
-      data: subCategoryWithPosts,
+      data: subcategoriesSms,
       meta: {
         page,
         limit,

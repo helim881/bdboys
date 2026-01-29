@@ -5,10 +5,10 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } },
+  { params }: { params: { slug: string; slub: string } },
 ) {
   try {
-    const { slug } = params;
+    const { slub } = params;
     const { searchParams } = new URL(request.url);
 
     // Pagination params
@@ -18,7 +18,7 @@ export async function GET(
 
     // 1️⃣ Fetch subcategory by slug
     const subCategory = await prisma.subCategory.findUnique({
-      where: { slug },
+      where: { slug: slub },
     });
 
     if (!subCategory) {

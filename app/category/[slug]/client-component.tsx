@@ -1,60 +1,94 @@
 "use client";
-import { useState } from "react";
+import CreateSubCategoryForm from "@/components/crate-subcategory-form";
+import PostCard from "@/components/landing-page/post-card";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { Category } from "./page";
 
-import { Loader2 } from "lucide-react";
-import SubcategoryWithPost from "../components/subcategoryWithPost";
-
-export default function SubcategoryListClient({
-  initialData,
+export default function CategoryClientComponent({
+  category,
   slug,
 }: {
-  initialData: any;
+  category: Category;
   slug: string;
 }) {
-  const [data, setData] = useState(initialData);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const session = useSession();
 
-  const loadMore = async (nextPage: number) => {
-    setLoading(true);
-    const res = await fetch(`/api/categories/${slug}?page=${nextPage}`);
-    const result = await res.json();
-    if (result.success) {
-      setData(result.data);
-      setPage(nextPage);
-    }
-    setLoading(false);
-  };
+  useEffect(() => {
+    setIsLoggedIn(!!session?.data?.user);
+  }, [session?.data?.user]);
 
   return (
-    <div className="space-y-12">
-      {loading ? (
-        <div className="flex justify-center py-10">
-          <Loader2 className="animate-spin" />
+    <div>
+      <div className="bg-[#E9F1F7] px-4 py-3 border-b border-[#B8D1E5] flex justify-between items-center">
+        <div>
+          <h1 className="text-[#003366] font-bold text-xl">{category.name}</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {category.name} বিষয়ক সকল পোস্ট এখানে পাওয়া যাবে।
+          </p>
+        </div>
+
+        {/* Toggle Create Post (only if logged in) */}
+        {isLoggedIn && (
+          <button
+            onClick={() => setIsCreating(!isCreating)}
+            className="text-blue-700 font-semibold text-sm hover:underline"
+          >
+            {isCreating ? "Back to Category" : "Create subcategory"}
+          </button>
+        )}
+      </div>
+      {!isCreating ? (
+        <div className="space-y-12">
+          {category.subCategories.length > 0 ? (
+            category.subCategories.map((sub) => (
+              <section
+                key={sub.id}
+                className="bg-white border border-[#B8D1E5] rounded-sm shadow-sm overflow-hidden"
+              >
+                {/* Header with "View More" */}
+                <div className="bg-[#E9F1F7] px-4 py-2 flex justify-between items-center border-b border-[#B8D1E5]">
+                  <h2 className="text-[#003366] font-bold text-lg">
+                    {sub.name}
+                  </h2>
+
+                  <Link
+                    href={`/category/${slug}/${encodeURIComponent(sub.slug)}`}
+                    className="text-blue-600 text-sm hover:underline font-semibold"
+                  >
+                    আরও দেখুন →
+                  </Link>
+                </div>
+
+                {/* Post List */}
+                <div className="divide-y divide-gray-100">
+                  {sub.posts.length > 0 ? (
+                    sub.posts.map((post) => (
+                      <PostCard key={post.id} post={post} />
+                    ))
+                  ) : (
+                    <p className="p-4 text-xs text-gray-400">
+                      এই সাব-ক্যাটাগরিতে কোনো পোস্ট নেই।
+                    </p>
+                  )}
+                </div>
+              </section>
+            ))
+          ) : (
+            <p className="text-center text-gray-400 py-10">
+              কোনো সাব-ক্যাটাগরি পাওয়া যায়নি।
+            </p>
+          )}
         </div>
       ) : (
-        data.subCategories.map((sub: any) => (
-          <SubcategoryWithPost key={sub.id} category={sub} slug={slug} />
-        ))
+        <CreateSubCategoryForm
+          categoryId={category?.id}
+          setIsCreating={setIsCreating}
+        />
       )}
-
-      {/* Pagination Controls */}
-      <div className="flex justify-center gap-4 mt-8">
-        <button
-          disabled={page === 1 || loading}
-          onClick={() => loadMore(page - 1)}
-          className="px-4 py-2 border rounded disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <button
-          disabled={page >= initialData.totalPages || loading}
-          onClick={() => loadMore(page + 1)}
-          className="px-4 py-2 border rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
     </div>
   );
 }

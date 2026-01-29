@@ -6,29 +6,28 @@ import { revalidatePath } from "next/cache";
 
 // ১. তৈরি করা (Create)
 export async function createSmsAction(data: {
-  title: string; // Add this
   content: string;
   categoryId: string;
   subCategoryId?: string;
   authorId: string;
+  status: PostStatus;
 }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) return { success: false, error: "Unauthorized" };
 
     // Use Title for slug, fallback to content if empty
-    const slugBase = data.title || data.content.slice(0, 20);
+    const slugBase = data.content.slice(0, 20);
     const slug = `${slugBase.trim().toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`;
 
     await prisma.sms.create({
       data: {
-        title: data.title,
         content: data.content,
         slug: slug,
         categoryId: data.categoryId,
         subCategoryId: data.subCategoryId || null,
         authorId: session.user.id,
-        status: "PUBLISHED",
+        status: data.status || "PENDING",
       },
     });
 

@@ -44,10 +44,7 @@ export default async function SmsZonePage() {
   });
   return (
     <div className=" container pt-4">
-      {/* Breadcrumb matching image_191441.png */}
-      <div className="bg-[#E9F1F7] p-2 mb-4 border border-[#B8D1E5]">
-        <Breadcrumb />
-      </div>
+      <Breadcrumb />
 
       {categoriesWithSms.map((cat) => (
         <SmsSection key={cat.id} cat={cat} />
