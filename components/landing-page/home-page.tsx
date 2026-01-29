@@ -2,6 +2,8 @@ import prisma from "@/lib/db";
 import { Metadata } from "next";
 import RecentPost from "../recentpost";
 import CategoryWithPost from "./categoryWithPost";
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   // Fetch global settings (id: 1 is your admin settings row)
   const settings = await prisma.setting.findFirst({

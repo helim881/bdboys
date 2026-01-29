@@ -4,7 +4,9 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import SubcategoryWithPost from "../components/subcategoryWithPost";
 
-// ১. মেটাডেটা জেনারেটর ফাংশন
+// এই লাইনটি নিশ্চিত করবে যে প্রতিবার রিকোয়েস্টে নতুন ডাটা আসবে
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {
@@ -19,26 +21,15 @@ export async function generateMetadata({
   });
 
   if (!category) {
-    return {
-      title: "Category Not Found | BDBOYS",
-    };
+    return { title: "Category Not Found | BDBOYS" };
   }
 
   return {
-    title: `${category.name} `,
-    description:
-      category.description || `${category.name} সম্পর্কিত সকল খবর এবং পোস্ট।`,
-    openGraph: {
-      title: `${category.name} - BDBOYS`,
-      description:
-        category.description || `${category.name} ক্যাটেগরির পোস্টসমূহ।`,
-      type: "website",
-    },
-    // যদি ক্যাটেগরির জন্য কোনো ইমেজ থাকে তবে সেটি এখানে দিতে পারেন
+    title: `${category.name} | BDBOYS`,
+    description: category.description || `${category.name} সম্পর্কিত সকল খবর।`,
   };
 }
 
-// ২. মূল পেজ কম্পোনেন্ট
 export default async function CategoryPage({
   params,
 }: {
@@ -55,9 +46,9 @@ export default async function CategoryPage({
         include: {
           posts: {
             where: { status: "PUBLISHED" },
-
             take: 5,
             orderBy: { createdAt: "desc" },
+            // অথর বা অন্য ডাটা লাগলে এখানে ইনক্লুড করতে পারেন
           },
         },
       },
@@ -72,17 +63,23 @@ export default async function CategoryPage({
     <main className="container mx-auto px-4 py-8">
       <Breadcrumb />
 
-      <div className="mb-10 border-b-4 border-[#003366] pb-2">
+      <header className="mb-10 border-b-4 border-[#003366] pb-2">
         <h1 className="text-3xl font-bold text-[#003366]">{category.name}</h1>
         <p className="text-gray-500 text-sm mt-1">
           {category.description || `${category.name} সম্পর্কিত সকল খবর`}
         </p>
-      </div>
+      </header>
 
       <div className="space-y-12">
-        {category.subCategories.map((sub) => (
-          <SubcategoryWithPost key={sub.id} category={sub} slug={slug} />
-        ))}
+        {category.subCategories.length > 0 ? (
+          category.subCategories.map((sub) => (
+            <SubcategoryWithPost key={sub.id} category={sub} slug={slug} />
+          ))
+        ) : (
+          <p className="text-center text-gray-400 py-10">
+            কোনো সাব-ক্যাটাগরি পাওয়া যায়নি।
+          </p>
+        )}
       </div>
     </main>
   );

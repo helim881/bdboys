@@ -3,6 +3,7 @@ import prisma from "@/lib/db";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import SubcategoryWithPost from "../components/subcategoryWithPost";
+export const dynamic = "force-dynamic";
 
 // ১. মেটাডেটা জেনারেটর ফাংশন
 export async function generateMetadata({

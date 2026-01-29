@@ -2,6 +2,7 @@ import Breadcrumb from "@/components/breadcumb";
 import PostCard from "@/components/landing-page/post-card";
 import { NotFound } from "@/components/not-found";
 import prisma from "@/lib/db";
+export const dynamic = "force-dynamic";
 
 export default async function SubCategoryPage({
   params,
@@ -11,7 +12,7 @@ export default async function SubCategoryPage({
   const { slug, sub } = params;
   const decodedSlug = decodeURIComponent(slug);
   const decodedSub = decodeURIComponent(sub);
-  console.log(decodedSub);
+
   // Fetch the sub-category and its 5 posts
   const subCategory = await prisma.subCategory.findUnique({
     where: { slug: decodedSub },

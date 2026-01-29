@@ -4,6 +4,7 @@ import prisma from "@/lib/db";
 import { notFound } from "next/navigation";
 import SmsCard from "../../components/sms-card";
 import SmsSubmitForm from "./submit-from";
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ slug: string; sub: string }>;
