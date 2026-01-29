@@ -15,8 +15,9 @@ export default function Header({
 }) {
   const { data: session, status } = useSession();
   const [isOpen, setIsOpen] = useState(false);
+  let role;
   const getDashboardUrl = () => {
-    const role = (session?.user?.role as keyof typeof routes) || "ADMIN";
+    role = (session?.user?.role as keyof typeof routes) || "ADMIN";
 
     const routes = {
       USER: "/user/dashboard",
@@ -62,10 +63,10 @@ export default function Header({
                 className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-md hover:bg-white/20 transition-all"
               >
                 <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-[10px]">
-                  {session.user?.name?.charAt(0).toUpperCase()}
+                  {session?.user?.name?.charAt(0).toUpperCase()}
                 </div>
                 <span className="text-sm font-medium hidden sm:inline">
-                  {session.user?.name}
+                  {session?.user?.name}
                 </span>
                 <ChevronDown
                   size={16}
@@ -84,7 +85,7 @@ export default function Header({
                     <div className="px-4 py-2 border-b border-gray-100">
                       <p className="text-xs text-gray-500">লগইন করা আছে</p>
                       <p className="text-sm font-bold truncate">
-                        {session.user?.email}
+                        {session?.user?.email}
                       </p>
                     </div>
 
@@ -134,6 +135,11 @@ export default function Header({
           <li className="hover:text-blue-400 transition-colors">
             <Link href="/posts">Recent Posts</Link>
           </li>
+          {session?.user?.role === "ADMIN" && (
+            <li className="hover:text-blue-400 transition-colors">
+              <Link href="/admin">Admin</Link>
+            </li>
+          )}
         </ul>
       </nav>
     </header>

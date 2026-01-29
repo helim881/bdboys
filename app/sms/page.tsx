@@ -1,8 +1,10 @@
 import Breadcrumb from "@/components/breadcumb";
+import ErrorPage from "@/components/error/error";
+import { NotFound } from "@/components/not-found";
 import RecentPost from "@/components/recentpost";
-import prisma from "@/lib/db";
 import { Metadata } from "next";
 import SmsSection from "./components/sms-section";
+
 export const metadata: Metadata = {
   title: "SMS Zone - Best Collection of Bangla SMS | BDBOYS.top",
   description:
@@ -21,7 +23,7 @@ export const metadata: Metadata = {
     siteName: "BDBOYS.top",
     images: [
       {
-        url: "/og-sms-zone.png", // Make sure this image exists in your public folder
+        url: "/og-sms-zone.png",
         width: 1200,
         height: 630,
       },
@@ -30,25 +32,61 @@ export const metadata: Metadata = {
     type: "website",
   },
 };
+
+type Sms = {
+  id: string;
+  title: string;
+  slug: string;
+};
+
+export type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  sms: Sms[];
+};
+
+type ApiResponse<T> = {
+  success: boolean;
+  data: T;
+  message?: string;
+};
+
 export default async function SmsZonePage() {
-  const categoriesWithSms = await prisma.category.findMany({
-    where: { type: "SMS" },
-    include: {
-      sms: {
-        where: { status: "PUBLISHED" },
-        take: 5,
-        orderBy: { createdAt: "desc" },
-        include: { author: { select: { id: true, name: true } } },
-      },
-    },
-  });
+  let categoriesWithSms: Category[] = [];
+
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/sms`, {
+      cache: "no-store",
+    });
+
+    if (!res.ok) throw new Error("Failed to fetch SMS categories");
+
+    const result: ApiResponse<Category[]> = await res.json();
+
+    categoriesWithSms = result.data;
+  } catch (error) {
+    console.error("SMS_CATEGORY_FETCH_ERROR:", error);
+    return <ErrorPage />;
+  }
+  console.log(categoriesWithSms);
+  if (categoriesWithSms.length === 0) {
+    return <NotFound />;
+  }
+
+  if (!categoriesWithSms || categoriesWithSms.length === 0) {
+    return <ErrorPage />;
+  }
+
   return (
-    <div className=" container pt-4">
+    <div className="container pt-4">
       <Breadcrumb />
 
       {categoriesWithSms.map((cat) => (
         <SmsSection key={cat.id} cat={cat} />
       ))}
+
       <RecentPost />
     </div>
   );

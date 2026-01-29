@@ -15,6 +15,8 @@ type SubCategory = {
   name: string;
   slug: string;
   sms: Sms[];
+  categoryId: string;
+  subCategoryId: string;
 };
 
 type Props = {
