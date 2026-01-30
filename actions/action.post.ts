@@ -18,7 +18,7 @@ export async function createPostAction(formData: any, authorId: string) {
         formData.featuredImage,
         {
           folder: "blog_posts",
-        }
+        },
       );
       imageUrl = uploadResponse.secure_url; // Use the secure HTTPS URL
     }
@@ -74,5 +74,39 @@ export async function updatePostAction(id: string, data: any) {
     return { success: true, data: updatedPost };
   } catch (error: any) {
     return { success: false, error: error.message };
+  }
+}
+
+export async function movePostAction(formData: {
+  postId: string;
+  categoryId: string;
+  subCategoryId: string;
+}) {
+  try {
+    // 1. Verify Post Existence (Mock DB Check)
+    const existingPost = await prisma.post.findUnique({
+      where: { id: formData.postId },
+    });
+
+    if (!existingPost) {
+      return { success: false, message: "Post no longer exists." };
+    }
+
+    // 2. Perform the Update
+    await prisma.post.update({
+      where: { id: formData.postId },
+      data: {
+        categoryId: formData.categoryId,
+        subCategoryId: formData.subCategoryId,
+      },
+    });
+
+    revalidatePath("/admin/posts/active");
+    return { success: true, message: "Post successfully relocated." };
+  } catch (error) {
+    return {
+      success: false,
+      message: "A server error occurred. Please try again.",
+    };
   }
 }

@@ -24,6 +24,7 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  // Relations with Cascade
   accounts Account[]
   sessions Session[]
   posts    Post[]
@@ -76,14 +77,12 @@ model VerificationToken {
 // ============== Content Models ==============
 
 model Category {
-  id          String  @id @default(cuid())
-  name        String  @unique
-  nameEn      String? @map("name_en")
-  slug        String  @unique
+  id          String       @id @default(cuid())
+  name        String       @unique
+  nameEn      String?      @map("name_en")
+  slug        String       @unique
   description String?
-
-  // Distinguish between Post categories and SMS categories
-  type CategoryType @default(POST)
+  type        CategoryType @default(POST)
 
   subCategories SubCategory[]
   posts         Post[]
@@ -124,12 +123,14 @@ model Post {
   contentHtml String  @map("content_html") @db.Text
   image       String?
 
-  categoryId    String       @map("category_id")
-  category      Category     @relation(fields: [categoryId], references: [id])
+  categoryId String   @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
   subCategoryId String?      @map("sub_category_id")
-  subCategory   SubCategory? @relation(fields: [subCategoryId], references: [id])
-  authorId      String       @map("author_id")
-  author        User         @relation(fields: [authorId], references: [id])
+  subCategory   SubCategory? @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
+
+  authorId String @map("author_id")
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   status    PostStatus @default(DRAFT)
   views     Int        @default(0)
@@ -146,16 +147,18 @@ model Post {
 
 model Sms {
   id      String  @id @default(cuid())
-  title   String? // SMS might not always need a title
+  title   String?
   slug    String  @unique
   content String  @db.Text
 
-  categoryId    String       @map("category_id")
-  category      Category     @relation(fields: [categoryId], references: [id])
+  categoryId String   @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
   subCategoryId String?      @map("sub_category_id")
-  subCategory   SubCategory? @relation(fields: [subCategoryId], references: [id])
-  authorId      String       @map("author_id")
-  author        User         @relation(fields: [authorId], references: [id])
+  subCategory   SubCategory? @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
+
+  authorId String @map("author_id")
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   status       PostStatus @default(PUBLISHED)
   views        Int        @default(0)
@@ -172,7 +175,7 @@ model Sms {
 model Setting {
   id          Int      @id @default(1)
   siteName    String   @default("BDBOYS.top")
-  siteLogo    String? // URL from Cloudinary
+  siteLogo    String?
   description String   @default("Best Bangla SMS Collection")
   keywords    String   @default("sms, bangla, tunes")
   facebookUrl String?

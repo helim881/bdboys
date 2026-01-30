@@ -37,11 +37,12 @@ export default function PostCard({
             <span>👤 {post.author?.name || "Admin"}</span>
             <span>
               📅{" "}
-              {new Date(post.createdAt).toLocaleDateString("bn-BD", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
+              {post?.date ??
+                new Date(post?.createdAt).toLocaleDateString("bn-BD", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
             </span>
             <span className="bg-blue-50 px-2 py-0.5 rounded text-[#003366]">
               ❤️ {post.views || 0}

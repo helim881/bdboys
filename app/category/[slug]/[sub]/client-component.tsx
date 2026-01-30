@@ -5,17 +5,16 @@ import CreatePost from "@/components/post-create-form";
 
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { SubCategory } from "./page"; // Type import
 
 type ClientComponentProps = {
-  subcategory: SubCategory;
+  subcategory: any;
 };
 
 export default function ClientComponent({ subcategory }: ClientComponentProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const session = useSession();
-  console.log(subcategory);
+
   // Check user login session
   useEffect(() => {
     setIsLoggedIn(!!session?.data?.user);
@@ -64,7 +63,7 @@ export default function ClientComponent({ subcategory }: ClientComponentProps) {
             </div>
           )
         ) : subcategory.posts.length > 0 ? (
-          subcategory.posts.map((post) => (
+          subcategory.posts.map((post: any) => (
             <PostCard key={post.id} post={post} />
           ))
         ) : (

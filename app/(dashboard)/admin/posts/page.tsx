@@ -13,12 +13,21 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
+// Added basic interface to prevent object-rendering errors
+interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  date: string;
+  status: string;
+  category: { name: string; slug: string }; // Matches your error: {name, slug}
+  author: { name: string; image?: string };
+}
+
 const ManagePosts = () => {
-  const [posts, setPosts] = useState<any[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]); // Typed as Post[]
   const [loading, setLoading] = useState(true);
   const [meta, setMeta] = useState({ total: 0, page: 1, lastPage: 1 });
-
-  // Filter States
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("সব স্ট্যাটাস");
   const [currentPage, setCurrentPage] = useState(1);
@@ -27,7 +36,6 @@ const ManagePosts = () => {
     const delayDebounceFn = setTimeout(() => {
       fetchPosts();
     }, 500);
-
     return () => clearTimeout(delayDebounceFn);
   }, [search, status, currentPage]);
 
@@ -45,7 +53,7 @@ const ManagePosts = () => {
       setPosts(data.posts || []);
       setMeta(data.meta || { total: 0, page: 1, lastPage: 1 });
     } catch (err) {
-      toast.error("পোস্ট লোড করতে সমস্যা হয়েছে");
+      toast.error("পোস্ট লোড করতে সমস্যা হয়েছে");
     } finally {
       setLoading(false);
     }
@@ -56,22 +64,21 @@ const ManagePosts = () => {
     try {
       const res = await fetch(`/api/posts/${id}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("পোস্ট মুছে ফেলা হয়েছে");
+        toast.success("পোস্ট মুছে ফেলা হয়েছে");
         fetchPosts();
       }
     } catch (err) {
-      toast.error("মুছে ফেলা সম্ভব হয়নি");
+      toast.error("মুছে ফেলা সম্ভব হয়নি");
     }
   };
 
   return (
     <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden">
-      {/* Header Area */}
       <div className="p-6 border-b border-slate-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h3 className="text-xl font-black text-slate-900">পোস্ট লিস্ট</h3>
           <p className="text-xs text-slate-500 font-medium">
-            মোট {meta.total} টি কন্টেন্ট পাওয়া গেছে
+            মোট {meta.total} টি কন্টেন্ট পাওয়া গেছে
           </p>
         </div>
 
@@ -93,7 +100,7 @@ const ManagePosts = () => {
               setStatus(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-4 py-2.5 bg-slate-50 border-none rounded-xl text-sm font-bold outline-none"
+            className="px-4 py-2.5 bg-slate-50 border-none rounded-xl text-sm font-bold outline-none cursor-pointer"
           >
             <option>সব স্ট্যাটাস</option>
             <option value="published">প্রকাশিত</option>
@@ -103,7 +110,6 @@ const ManagePosts = () => {
         </div>
       </div>
 
-      {/* Table Area */}
       <div className="overflow-x-auto relative min-h-[400px]">
         {loading && (
           <div className="absolute inset-0 bg-white/60 z-10 flex items-center justify-center backdrop-blur-[1px]">
@@ -136,7 +142,6 @@ const ManagePosts = () => {
                         {post.date}
                       </span>
                       <span>•</span>
-                      {/* FIX: Accessing .name property instead of the whole object */}
                       <span className="text-slate-600">
                         👤 {post.author?.name || "Unknown"}
                       </span>
@@ -145,7 +150,8 @@ const ManagePosts = () => {
                 </td>
                 <td className="px-6 py-4 text-center">
                   <span className="text-[10px] font-bold px-2.5 py-1 bg-blue-50 text-blue-600 rounded-lg uppercase tracking-tight">
-                    {post.category}
+                    {/* FIXED: Rendering post.category.name instead of object */}
+                    {post.category?.name || "No Category"}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-center">
@@ -188,7 +194,6 @@ const ManagePosts = () => {
         </table>
       </div>
 
-      {/* Pagination */}
       <div className="p-6 border-t border-slate-50 flex items-center justify-between">
         <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
           পৃষ্ঠা <span className="text-slate-900">{meta.page}</span> /{" "}

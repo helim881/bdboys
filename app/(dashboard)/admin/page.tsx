@@ -16,7 +16,7 @@ const AdminPanel = () => {
     },
     {
       title: "Category Management (22)",
-      href: "/admin/categories",
+      href: "/admin/category",
       desc: "Manage Your Category From Here. Currently You Have 22 Category. Review It For Edit/Delete.",
     },
     {

@@ -26,8 +26,9 @@ export async function GET(request: Request) {
       prisma.post.findMany({
         where,
         include: {
-          category: { select: { name: true } },
-          author: { select: { name: true } },
+          category: { select: { name: true, slug: true } },
+          subCategory: { select: { name: true, slug: true } },
+          author: { select: { name: true, image: true, id: true } },
         },
         orderBy: { createdAt: "desc" },
         skip,
@@ -36,30 +37,8 @@ export async function GET(request: Request) {
       prisma.post.count({ where }),
     ]);
 
-    // --- DATA FORMATTING START ---
-    const formattedPosts = posts.map((post) => ({
-      id: post.id,
-      title: post.title,
-      slug: post.slug,
-      // Extract names from objects to strings
-      category: post.category?.name || "Uncategorized",
-      image: post.image,
-      author: {
-        name: post.author?.name || "Unknown Author",
-      },
-      status: post.status.toLowerCase(),
-      content: post.content,
-      // Format date for the UI
-      date: new Date(post.createdAt).toLocaleDateString("bn-BD", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      }),
-    }));
-    // --- DATA FORMATTING END ---
-
     return NextResponse.json({
-      posts: formattedPosts,
+      posts,
       meta: {
         total,
         page,
