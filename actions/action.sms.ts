@@ -65,6 +65,23 @@ export async function updateSmsAction(
     return { success: false, error: "আপডেট করা সম্ভব হয়নি।" };
   }
 }
+export async function updateSmsStatusAction(
+  id: string,
+  status: "PUBLISHED" | "DRAFT" | "ARCHIVED",
+) {
+  try {
+    await prisma.sms.update({
+      where: { id },
+      data: { status },
+    });
+
+    revalidatePath("/admin/sms");
+    return { success: true };
+  } catch (error) {
+    console.error("Status Update Error:", error);
+    return { success: false };
+  }
+}
 
 // ৩. ডিলিট করা (Delete)
 export async function deleteSmsAction(id: string) {

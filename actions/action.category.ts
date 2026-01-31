@@ -4,22 +4,39 @@
 import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
-// --- CREATE ACTION ---
-export async function createCategoryAction(name: string, type: "POST" | "SMS") {
+// Define an interface for the incoming data
+interface CategoryInput {
+  name: string;
+  type: "POST" | "SMS";
+  metaTitle?: string;
+  tags?: string;
+  metaDescription?: string;
+}
+
+export async function createCategoryAction(data: CategoryInput) {
+  const { name, type, metaTitle, tags, metaDescription } = data;
+
+  // 1. Validation
   if (!name) return { success: false, error: "নাম প্রয়োজন" };
 
+  // 2. Enhanced Slug Generation
+  // Handles Bengali characters, removes trailing dashes, and ensures uniqueness
   const slug = name
     .trim()
-    .toLowerCase()
     .replace(/\s+/g, "-")
-    .replace(/[^\u0980-\u09FFa-zA-Z0-9-]+/g, "");
+    .replace(/[^\u0980-\u09FFa-zA-Z0-9-]+/g, "") // Keep Bengali + Alphanumeric
+    .toLowerCase()
+    .replace(/^-+|-+$/g, ""); // Remove leading/trailing dashes
 
   try {
     await prisma.category.create({
       data: {
         name,
         slug,
-        type, // Passing the type here
+        type,
+        metaTitle: metaTitle || null,
+        tags: tags || null,
+        metaDescription: metaDescription || null,
       },
     });
 
@@ -27,29 +44,43 @@ export async function createCategoryAction(name: string, type: "POST" | "SMS") {
     return { success: true };
   } catch (error: any) {
     console.error("Database Error:", error);
+
+    // Prisma Unique Constraint Error
     if (error.code === "P2002") {
       return {
         success: false,
         error: "এই নামে বা স্লাগে অলরেডি ক্যাটেগরি আছে",
       };
     }
+
     return { success: false, error: "ডাটাবেসে সেভ করা সম্ভব হয়নি" };
   }
 }
 
-// --- UPDATE ACTION ---
+interface UpdateCategoryInput {
+  name: string;
+  type: "POST" | "SMS";
+  metaTitle?: string;
+  tags?: string;
+  metaDescription?: string;
+}
+
 export async function updateCategoryAction(
   id: string,
-  data: { name: string; type: "POST" | "SMS" }
+  data: UpdateCategoryInput,
 ) {
   try {
-    const { name, type } = data;
+    const { name, type, metaTitle, tags, metaDescription } = data;
 
+    if (!name) return { success: false, error: "নাম প্রয়োজন" };
+
+    // Generate slug (consistent with create logic)
     const slug = name
       .trim()
-      .toLowerCase()
       .replace(/\s+/g, "-")
-      .replace(/[^\u0980-\u09FFa-zA-Z0-9-]+/g, "");
+      .replace(/[^\u0980-\u09FFa-zA-Z0-9-]+/g, "")
+      .toLowerCase()
+      .replace(/^-+|-+$/g, "");
 
     await prisma.category.update({
       where: { id },
@@ -57,6 +88,11 @@ export async function updateCategoryAction(
         name,
         slug,
         type,
+        metaTitle: metaTitle || null,
+        metaDescription: metaDescription || null,
+        tags: tags || null,
+        // Syncing description with metaDescription for internal consistency
+        description: metaDescription || null,
       },
     });
 
@@ -64,10 +100,18 @@ export async function updateCategoryAction(
     return { success: true };
   } catch (error: any) {
     console.error("Update Error:", error);
+
+    // Handle duplicate name or slug error
+    if (error.code === "P2002") {
+      return {
+        success: false,
+        error: "এই নামে বা স্লাগে অন্য একটি ক্যাটেগরি অলরেডি আছে",
+      };
+    }
+
     return { success: false, error: "আপডেট করা সম্ভব হয়নি" };
   }
 }
-
 // --- DELETE ACTION ---
 export async function deleteCategoryAction(id: string) {
   try {
@@ -88,7 +132,7 @@ export async function deleteCategoryAction(id: string) {
 // ১. তৈরি করা
 export async function createSubCategoryAction(
   name: string,
-  categoryId: string
+  categoryId: string,
 ) {
   try {
     const slug = name
@@ -110,7 +154,7 @@ export async function createSubCategoryAction(
 export async function updateSubCategoryAction(
   id: string,
   name: string,
-  categoryId: string
+  categoryId: string,
 ) {
   try {
     const slug = name

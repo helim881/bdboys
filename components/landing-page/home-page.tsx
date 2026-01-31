@@ -1,8 +1,7 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import RecentPost from "../recentpost";
 import CategoryWithPost from "./categoryWithPost";
 
 export default function PostPortal() {
@@ -46,42 +45,15 @@ export default function PostPortal() {
         </div>
       ) : (
         <div className="space-y-8 animate-in fade-in duration-500">
-          {categories.map((category: any) => (
-            <CategoryWithPost key={category.id} category={category} />
+          {categories.map((category: any, index) => (
+            <CategoryWithPost
+              key={category.id}
+              category={category}
+              index={index}
+            />
           ))}
-
-          {/* আধুনিক পেজিনেশন কন্ট্রোল */}
-          <div className="flex items-center justify-between p-6 bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm">
-            <p className="text-sm font-bold text-slate-500">
-              মোট ক্যাটাগরি: <span className="text-blue-600">{meta.total}</span>
-            </p>
-
-            <div className="flex items-center gap-3">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage((p) => p - 1)}
-                className="h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 hover:bg-slate-50 disabled:opacity-30 transition-all"
-              >
-                <ChevronLeft size={20} />
-              </button>
-
-              <div className="bg-blue-50 text-blue-700 h-10 px-5 flex items-center justify-center rounded-xl font-black text-sm">
-                পেজ {page} / {meta.totalPage}
-              </div>
-
-              <button
-                disabled={page >= meta.totalPage}
-                onClick={() => setPage((p) => p + 1)}
-                className="h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 hover:bg-slate-50 disabled:opacity-30 transition-all"
-              >
-                <ChevronRight size={20} />
-              </button>
-            </div>
-          </div>
         </div>
       )}
-
-      <RecentPost />
     </main>
   );
 }

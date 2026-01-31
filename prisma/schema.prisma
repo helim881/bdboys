@@ -84,6 +84,11 @@ model Category {
   description String?
   type        CategoryType @default(POST)
 
+  // New SEO Fields
+  metaTitle       String? @map("meta_title")
+  metaDescription String? @map("meta_description")
+  tags            String? // Stored as a comma-separated string
+
   subCategories SubCategory[]
   posts         Post[]
   sms           Sms[]
@@ -180,6 +185,19 @@ model Setting {
   keywords    String   @default("sms, bangla, tunes")
   facebookUrl String?
   updatedAt   DateTime @updatedAt
+}
+
+model Ad {
+  id        String  @id @default(cuid())
+  name      String // Display name for the dashboard
+  placement String  @unique // e.g., "header_ad", "after_article"
+  code      String? @db.Text // The script or HTML code
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("ads")
 }
 
 // ============== Enums ==============

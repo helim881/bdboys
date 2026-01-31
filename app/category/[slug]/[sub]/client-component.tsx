@@ -48,14 +48,13 @@ export default function ClientComponent({ subcategory }: ClientComponentProps) {
         {isCreating ? (
           isLoggedIn ? (
             <div className="mt-6 p-4 border border-gray-200 rounded-md shadow-sm">
-              {subcategory.posts[0].subCategoryId &&
-                subcategory?.posts[0].categoryId && (
-                  <CreatePost
-                    subCategoryId={subcategory?.id}
-                    categoryId={subcategory?.categoryId}
-                    setIsCreating={setIsCreating}
-                  />
-                )}
+              {subcategory?.id && subcategory?.categoryId && (
+                <CreatePost
+                  subCategoryId={subcategory?.id}
+                  categoryId={subcategory?.categoryId}
+                  setIsCreating={setIsCreating}
+                />
+              )}
             </div>
           ) : (
             <div className="p-6 text-center text-red-500 font-semibold">

@@ -1,10 +1,9 @@
 "use client";
 
-import { ChevronDown, LayoutDashboard, LogOut } from "lucide-react"; // লুসাইড আইকন ব্যবহার করলে দেখতে ভালো লাগে
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Header({
   logo,
@@ -15,28 +14,39 @@ export default function Header({
 }) {
   const { data: session, status } = useSession();
   const [isOpen, setIsOpen] = useState(false);
-  let role;
-  const getDashboardUrl = () => {
-    role = (session?.user?.role as keyof typeof routes) || "ADMIN";
+  const [adCode, setAdCode] = useState("");
 
-    const routes = {
-      USER: "/user/dashboard",
-      AUTHOR: "/author/dashboard",
-      ADMIN: "/admin/dashboard",
-      EDITOR: "/editor/dashboard",
+  const getDashboardUrl = () => {
+    const role = (session?.user?.role as string) || "USER";
+
+    const routes: Record<string, string> = {
+      SUPER_ADMIN: "/dashboard/admin",
+      ADMIN: "/dashboard/admin",
+      EDITOR: "/dashboard/editor",
+      AUTHOR: "/dashboard/author",
+      CONTRIBUTOR: "/dashboard/contributor",
+      USER: "/dashboard/user",
     };
 
-    return routes[role] || "/";
+    return routes[role] || "/dashboard/user";
   };
 
+  useEffect(() => {
+    // Fetching the Header Ad
+    fetch(`/api/ads/header_ad`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "active") setAdCode(data.code);
+      });
+  }, []);
+
   return (
-    <header className=" border   relative">
+    <header className="relative border-b">
+      {/* 1. TOP HEADER: Logo and User Profile */}
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2">
           {logo ? (
             <div className="relative h-8 w-32">
-              {" "}
-              {/* Adjust width/height as needed */}
               <Image
                 src={logo}
                 alt={siteName || "Logo"}
@@ -52,70 +62,24 @@ export default function Header({
           )}
         </Link>
 
-        <div className="flex items-center text-white gap-4">
+        <div className="flex items-center gap-4">
           {status === "loading" ? (
-            <div className="h-6 w-16 bg-white/10 animate-pulse rounded"></div>
+            <div className="h-6 w-16 bg-slate-100 animate-pulse rounded"></div>
           ) : session ? (
             <div className="relative text-gray-700">
-              {/* ড্রপডাউন ট্রিগার বাটন */}
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-md hover:bg-white/20 transition-all"
-              >
-                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-[10px]">
+              <button className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-md hover:bg-slate-200 transition-all">
+                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-[10px] text-white">
                   {session?.user?.name?.charAt(0).toUpperCase()}
                 </div>
                 <span className="text-sm font-medium hidden sm:inline">
                   {session?.user?.name}
                 </span>
-                <ChevronDown
-                  size={16}
-                  className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
-                />
               </button>
-
-              {/* ড্রপডাউন মেনু */}
-              {isOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setIsOpen(false)}
-                  ></div>
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 text-gray-800 border border-gray-200">
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-xs text-gray-500">লগইন করা আছে</p>
-                      <p className="text-sm font-bold truncate">
-                        {session?.user?.email}
-                      </p>
-                    </div>
-
-                    <Link
-                      href={getDashboardUrl()}
-                      onClick={() => setIsOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 transition-colors"
-                    >
-                      <LayoutDashboard size={16} className="text-blue-600" />
-                      ড্যাশবোর্ড
-                    </Link>
-
-                    <button
-                      onClick={() => {
-                        setIsOpen(false);
-                        signOut();
-                      }}
-                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100"
-                    >
-                      <LogOut size={16} />
-                      লগআউট
-                    </button>
-                  </div>
-                </>
-              )}
             </div>
           ) : (
             <Link
               href="/auth"
-              className="bg-white text-[#003366] px-5 py-1.5 rounded-full text-sm font-bold hover:bg-gray-200 transition-all"
+              className="bg-blue-600 text-white px-5 py-1.5 rounded-full text-sm font-bold hover:bg-blue-700 transition-all"
             >
               Login
             </Link>
@@ -123,25 +87,35 @@ export default function Header({
         </div>
       </div>
 
-      {/* নেভিগেশন বার */}
-      <nav className="bg-[#333333] text-white border-t border-gray-600">
-        <ul className="container mx-auto px-4 flex gap-6 text-[11px] py-2.5 uppercase font-medium">
-          <li className="hover:text-blue-400 transition-colors">
+      {/* 2. NAVIGATION BAR */}
+      <nav className="bg-[#333333] text-white">
+        <ul className="container mx-auto px-4 flex gap-6 text-[11px] py-2.5 uppercase font-medium overflow-x-auto whitespace-nowrap">
+          <li className="hover:text-blue-400">
             <Link href="/">Home</Link>
           </li>
-          <li className="hover:text-blue-400 transition-colors">
+          <li className="hover:text-blue-400">
             <Link href="/sms">Sms Zone</Link>
           </li>
-          <li className="hover:text-blue-400 transition-colors">
+          <li className="hover:text-blue-400">
             <Link href="/posts">Recent Posts</Link>
           </li>
           {session?.user?.role === "ADMIN" && (
-            <li className="hover:text-blue-400 transition-colors">
+            <li className="hover:text-blue-400">
               <Link href="/admin">Admin</Link>
             </li>
           )}
         </ul>
       </nav>
+
+      {/* 3. HEADER AD PLACEMENT: After Header Content */}
+      {adCode && (
+        <div className="container mx-auto px-4 py-4 flex justify-center">
+          <div
+            className="w-full max-w-[728px] flex justify-center overflow-hidden"
+            dangerouslySetInnerHTML={{ __html: adCode }}
+          />
+        </div>
+      )}
     </header>
   );
 }

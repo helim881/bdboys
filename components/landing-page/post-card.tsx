@@ -30,7 +30,9 @@ export default function PostCard({
           {post.title}
         </Link>
         <p className="text-gray-500 text-sm line-clamp-1 mt-1">
-          {post.excerpt}
+          {post.content
+            ? post.content.replace(/<[^>]*>/g, "") // 🛠️ Strips all HTML tags
+            : "বিস্তারিত নেই"}
         </p>
         <div className="flex items-center gap-4 text-[11px] text-gray-400 mt-2 font-medium">
           <div className="flex items-center gap-4 text-[11px] text-gray-400 mt-3 font-medium">

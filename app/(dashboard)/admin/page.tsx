@@ -6,12 +6,12 @@ const AdminPanel = () => {
   const adminItems = [
     {
       title: "Pending Posts (0)",
-      href: "/admin/posts/pending",
+      href: "/admin/pending-post",
       desc: "Here's Your Pending Posts List. Currently You Have 0 Post. For Review Enter This Dept.",
     },
     {
       title: "Active Posts (212)",
-      href: "/admin/posts/active",
+      href: "/admin/active-post",
       desc: "Here's Your Active Posts List. Currently You Have 212 Post. Review It For Edit/Delete.",
     },
     {
@@ -21,17 +21,17 @@ const AdminPanel = () => {
     },
     {
       title: "Pending Sms (0)",
-      href: "/admin/sms/pending",
+      href: "/admin/pending-sms",
       desc: "Here's Your Pending Sms List. Currently You Have 0 Post. Review It For Edit/Delete.",
     },
     {
       title: "Active Sms (7887)",
-      href: "/admin/sms/active",
+      href: "/admin/active-sms",
       desc: "Here's Your Active Posts List. Currently You Have 7887 Post. Review It For Edit/Delete.",
     },
     {
       title: "Sms Category Management (4)",
-      href: "/admin/sms/categories",
+      href: "/admin/sms-category",
       desc: "Manage Your Sms Category From Here. Currently You Have 4 Category. Review It For Edit/Delete.",
     },
     {
@@ -39,26 +39,13 @@ const AdminPanel = () => {
       href: "/admin/users",
       desc: "Manage Your User From Here. Currently You Have 182.",
     },
-    {
-      title: "Tuner Management (2)",
-      href: "/admin/tuner",
-      desc: "Manage Your Tuner From Here. Currently You Have 2.",
-    },
-    {
-      title: "Staff Management (2)",
-      href: "/admin/staff",
-      desc: "Manage Your Staff From Here. Currently You Have 2.",
-    },
+
     {
       title: "Ads Management",
-      href: "/admin/ads",
+      href: "/admin/ads-manager",
       desc: "Manage Your Ads From Here.",
     },
-    {
-      title: "Delete Copyright Page",
-      href: "/admin/copyright",
-      desc: "Delete Youtube Copyright Page From Here.",
-    },
+
     {
       title: "FB Auto Poster",
       href: "/admin/fb-poster",

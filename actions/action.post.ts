@@ -110,3 +110,20 @@ export async function movePostAction(formData: {
     };
   }
 }
+export async function updateStatusAction(
+  id: string,
+  status: "PUBLISHED" | "DRAFT" | "ARCHIVED",
+) {
+  try {
+    await prisma.post.update({
+      where: { id },
+      data: { status },
+    });
+
+    revalidatePath("/admin/sms");
+    return { success: true };
+  } catch (error) {
+    console.error("Status Update Error:", error);
+    return { success: false };
+  }
+}

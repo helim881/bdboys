@@ -1,25 +1,33 @@
 "use client";
 
+import Breadcrumb from "@/components/breadcumb";
 import {
-  Calendar,
+  Edit,
   Loader2,
   Mail,
-  MoreVertical,
-  ShieldCheck,
+  Search,
   UserCheck,
+  Users,
   UserX,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { User, UserRole, UserStatus } from "../dashboard/types";
+
+import { User } from "@/interface/type";
+import { UserRole } from "@/types/common";
+import { UserStatus } from "@prisma/client";
+import { UserEditModal } from "./user-model";
+// Ensure this path is correct
 
 const ManageUsers = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<UserRole | "all">("all");
-  const [statusFilter, setStatusFilter] = useState<UserStatus | "all">("all");
+
+  // State for the Update Modal
+  const [editUser, setEditUser] = useState<User | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -32,13 +40,13 @@ const ManageUsers = () => {
       const data = await res.json();
       setUsers(data);
     } catch (err) {
-      toast.error("ব্যবহারকারী লোড করতে ব্যর্থ হয়েছে");
+      toast.error("ব্যবহারকারী লোড করতে ব্যর্থ হয়েছে");
     } finally {
       setLoading(false);
     }
   };
 
-  const onUpdateRole = async (userId: number, role: UserRole) => {
+  const onUpdateRole = async (userId: number, role: string) => {
     setProcessingId(userId);
     try {
       const res = await fetch(`/api/users/${userId}`, {
@@ -47,7 +55,11 @@ const ManageUsers = () => {
         body: JSON.stringify({ role }),
       });
       if (!res.ok) throw new Error();
-      setUsers(users.map((u) => (u.id === userId ? { ...u, role } : u)));
+      setUsers(
+        users.map((u) =>
+          u.id === userId ? { ...u, role: role as UserRole } : u,
+        ),
+      );
       toast.success("রোল আপডেট করা হয়েছে");
     } catch (err) {
       toast.error("রোল আপডেট করতে সমস্যা হয়েছে");
@@ -74,36 +86,19 @@ const ManageUsers = () => {
     }
   };
 
-  const onDelete = async (userId: number) => {
-    if (!confirm("আপনি কি নিশ্চিতভাবে এই ব্যবহারকারীকে মুছতে চান?")) return;
-    setProcessingId(userId);
-    try {
-      const res = await fetch(`/api/users/${userId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
-      setUsers(users.filter((u) => u.id !== userId));
-      toast.success("ব্যবহারকারী মুছে ফেলা হয়েছে");
-    } catch (err) {
-      toast.error("মুছে ফেলতে সমস্যা হয়েছে");
-    } finally {
-      setProcessingId(null);
-    }
-  };
-
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    const matchesStatus =
-      statusFilter === "all" || user.status === statusFilter;
-    return matchesSearch && matchesRole && matchesStatus;
+    return matchesSearch && matchesRole;
   });
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-96 space-y-4">
-        <Loader2 className="w-12 h-12 animate-spin text-red-600" />
-        <p className="text-slate-500 font-bold animate-pulse text-lg">
+      <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
+        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+        <p className="text-slate-400 font-medium animate-pulse">
           তথ্য লোড হচ্ছে...
         </p>
       </div>
@@ -111,161 +106,159 @@ const ManageUsers = () => {
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-8 animate-in fade-in duration-500">
-      {/* Grid Display */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {filteredUsers.map((user) => (
-          <UserCard
-            key={user.id}
-            user={user}
-            processingId={processingId}
-            onUpdateRole={onUpdateRole}
-            onUpdateStatus={onUpdateStatus}
-            onDelete={onDelete}
-          />
-        ))}
-      </div>
+    <div className="max-w-[1200px] mx-auto p-4 md:p-6 space-y-6">
+      <header className="space-y-4">
+        <Breadcrumb />
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <Users className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-slate-900">
+                ব্যবহারকারী ব্যবস্থাপনা
+              </h1>
+              <p className="text-sm text-slate-500">
+                মোট {filteredUsers.length} জন ব্যবহারকারী পাওয়া গেছে
+              </p>
+            </div>
+          </div>
 
-      {/* Summary Stats */}
-      <div className="flex flex-wrap gap-4 pt-4">
-        <StatBadge
-          label="মোট মেম্বার"
-          count={filteredUsers.length}
-          color="bg-slate-900"
-        />
-        <StatBadge
-          label="সক্রিয়"
-          count={filteredUsers.filter((u) => u.status === "active").length}
-          color="bg-emerald-500"
-        />
-        <StatBadge
-          label="সাসপেন্ডেড"
-          count={filteredUsers.filter((u) => u.status === "suspended").length}
-          color="bg-rose-500"
-        />
-      </div>
-    </div>
-  );
-};
-
-/* Sub-component for individual User Cards */
-const UserCard = ({
-  user,
-  processingId,
-  onUpdateRole,
-  onUpdateStatus,
-  onDelete,
-}: any) => {
-  const isUpdating = processingId === user.id;
-
-  return (
-    <div
-      className={`group relative bg-white border border-slate-100 rounded-[32px] p-6 transition-all duration-300 hover:shadow-2xl hover:shadow-slate-200/50 hover:-translate-y-1 ${
-        isUpdating ? "opacity-60 pointer-events-none" : ""
-      }`}
-    >
-      <div className="flex justify-between items-start mb-6">
-        <div className="relative">
-          <div className="h-16 w-16 rounded-[22px] bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center overflow-hidden border-2 border-white shadow-inner">
-            {user.avatar ? (
-              <img
-                src={user.avatar}
-                className="h-full w-full object-cover"
-                alt=""
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="নাম বা ইমেইল খুঁজুন..."
+                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
-            ) : (
-              <span className="text-slate-400 font-black text-2xl">
-                {user.name.charAt(0)}
-              </span>
-            )}
+            </div>
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value as any)}
+              className="w-full sm:w-auto px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 outline-none"
+            >
+              <option value="all">সব রোল</option>
+              <option value="admin">অ্যাডমিন</option>
+              <option value="editor">এডিটর</option>
+              <option value="user">ইউজার</option>
+            </select>
           </div>
-          <div
-            className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-4 border-white ${
-              user.status === "active" ? "bg-emerald-500" : "bg-rose-500"
-            }`}
-          />
         </div>
-        <button className="p-2 text-slate-300 hover:text-slate-600 transition-colors hover:bg-slate-50 rounded-xl">
-          <MoreVertical size={20} />
-        </button>
-      </div>
+      </header>
 
-      <div className="space-y-1">
-        <h4 className="font-black text-slate-900 text-lg leading-tight group-hover:text-red-600 transition-colors">
-          {user.name}
-        </h4>
-        <div className="flex items-center gap-1.5 text-slate-400 text-xs font-medium">
-          <Mail size={12} />
-          {user.email}
-        </div>
-      </div>
-
-      <div className="my-6 grid grid-cols-2 gap-3">
-        <div className="p-3 rounded-2xl bg-slate-50/80 border border-slate-100">
-          <div className="flex items-center gap-1 text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">
-            <ShieldCheck size={12} /> রোল সেট করুন
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        {filteredUsers.length === 0 ? (
+          <div className="p-20 text-center">
+            <p className="text-slate-400">
+              কোন ব্যবহারকারী খুঁজে পাওয়া যায়নি
+            </p>
           </div>
-          <select
-            value={user.role}
-            onChange={(e) => onUpdateRole(user.id, e.target.value)}
-            className="w-full bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer"
-          >
-            <option value="admin">ADMIN</option>
-            <option value="editor">EDITOR</option>
-            <option value="author">AUTHOR</option>
-            <option value="user">USER</option>
-          </select>
-        </div>
+        ) : (
+          <div className="divide-y divide-slate-50">
+            {filteredUsers.map((user) => (
+              <div
+                key={user.id}
+                className={`p-5 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all hover:bg-slate-50/50 ${
+                  processingId === user.id
+                    ? "opacity-50 pointer-events-none"
+                    : ""
+                }`}
+              >
+                <div className="flex items-center gap-5">
+                  <div className="relative">
+                    <div className="h-14 w-14 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200 shadow-sm">
+                      {user.avatar ? (
+                        <img
+                          src={user.avatar}
+                          className="h-full w-full object-cover"
+                          alt=""
+                        />
+                      ) : (
+                        <span className="text-slate-400 font-bold text-xl">
+                          {user.name.charAt(0)}
+                        </span>
+                      )}
+                    </div>
+                    <div
+                      className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${user.status === "ACTIVE" ? "bg-emerald-500" : "bg-rose-500"}`}
+                    />
+                  </div>
 
-        <div className="p-3 rounded-2xl bg-slate-50/80 border border-slate-100 flex flex-col justify-center">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">
-            মোট পোস্ট
-          </p>
-          <p className="text-sm font-black text-slate-900">{user.posts} টি</p>
-        </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-[17px] font-bold text-[#1a56a6] hover:text-blue-700 transition-colors cursor-pointer">
+                        {user.name}
+                      </h4>
+                      <button
+                        onClick={() => setEditUser(user)}
+                        className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-blue-600 transition-all"
+                      >
+                        <Edit size={14} />
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-slate-500">
+                      <span className="flex items-center gap-1">
+                        <Mail className="w-3 h-3" /> {user.email}
+                      </span>
+                      <span className="hidden sm:block text-slate-300">|</span>
+                      <span className="uppercase font-semibold tracking-wider text-[11px] px-2 py-0.5 bg-slate-100 rounded text-slate-600">
+                        {user.role}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-none pt-4 md:pt-0">
+                  <button
+                    onClick={() =>
+                      onUpdateStatus(
+                        user.id,
+                        user.status === "ACTIVE" ? "SUSPENDED" : "ACTIVE",
+                      )
+                    }
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm ${
+                      user.status === "ACTIVE"
+                        ? "bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white"
+                        : "bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white"
+                    }`}
+                  >
+                    {user.status === "ACTIVE" ? (
+                      <>
+                        <UserX size={16} />{" "}
+                        <span className="hidden sm:inline">সাসপেন্ড</span>
+                      </>
+                    ) : (
+                      <>
+                        <UserCheck size={16} />{" "}
+                        <span className="hidden sm:inline">সক্রিয় করুন</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      <div className="flex items-center gap-4 text-[11px] font-bold text-slate-400 mb-6 px-1">
-        <div className="flex items-center gap-1">
-          <Calendar size={12} /> {user.joined}
-        </div>
-      </div>
-
-      <div className="flex gap-2">
-        <button
-          onClick={() =>
-            onUpdateStatus(
-              user.id,
-              user.status === "active" ? "suspended" : "active"
-            )
-          }
-          className={`flex-1 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
-            user.status === "active"
-              ? "bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white"
-              : "bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white"
-          }`}
-        >
-          {user.status === "active" ? (
-            <>
-              <UserX size={14} strokeWidth={3} /> সাসপেন্ড
-            </>
-          ) : (
-            <>
-              <UserCheck size={14} strokeWidth={3} /> সক্রিয়
-            </>
-          )}
-        </button>
-      </div>
+      {/* Logic for the Modal Component */}
+      {editUser && (
+        <UserEditModal
+          user={editUser}
+          isOpen={!!editUser}
+          onClose={() => setEditUser(null)}
+          onSuccess={(updatedUser) => {
+            setUsers(
+              users.map((u) => (u.id === updatedUser.id ? updatedUser : u)),
+            );
+          }}
+        />
+      )}
     </div>
   );
 };
-
-const StatBadge = ({ label, count, color }: any) => (
-  <div className="flex items-center gap-3 bg-white border border-slate-100 px-5 py-3 rounded-2xl shadow-sm">
-    <div className={`w-2.5 h-2.5 rounded-full ${color} shadow-sm`} />
-    <span className="text-sm font-bold text-slate-500">{label}:</span>
-    <span className="text-sm font-black text-slate-900">{count}</span>
-  </div>
-);
 
 export default ManageUsers;

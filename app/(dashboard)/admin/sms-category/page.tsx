@@ -14,7 +14,7 @@ const CategoriesPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
   const fetchCategories = async () => {
     try {
-      const res = await fetch("/api/categories?type=POST");
+      const res = await fetch("/api/categories?type=SMS");
       const data = await res.json();
       setCategories(data);
     } catch (err) {
