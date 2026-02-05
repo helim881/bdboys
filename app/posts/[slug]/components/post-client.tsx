@@ -193,14 +193,14 @@ const PostClientView = ({
                 )}
               </div>
               <div className="space-y-2">
-                <div>
+                <Link href={`/profile/${user?.id}`}>
                   <h4 className="font-bold text-gray-900 leading-tight">
                     {post.author?.name || "Anonymous"}
                   </h4>
                   <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">
-                    {post.author?.role || "Author"} • {siteName}
+                    • {siteName}
                   </p>
-                </div>
+                </Link>
                 {stats && (
                   <div className="flex gap-3 pt-1">
                     <div className="flex items-center text-[11px] font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-100">

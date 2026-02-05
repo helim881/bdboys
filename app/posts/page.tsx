@@ -79,7 +79,9 @@ export default async function PostsListPage({
                 </p>
 
                 <div className="flex items-center gap-4 text-[11px] text-gray-400 mt-3 font-medium">
-                  <span>👤 {post.author?.name || "Admin"}</span>
+                  <Link href={`/profile/${post?.author?.id}`}>
+                    👤 {post.author?.name || "Admin"}
+                  </Link>
                   <span>
                     📅{" "}
                     {new Date(post.createdAt).toLocaleDateString("bn-BD", {
