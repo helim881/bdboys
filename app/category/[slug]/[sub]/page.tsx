@@ -6,9 +6,6 @@ import ClientComponent from "./client-component";
 
 export const dynamic = "force-dynamic";
 
-/** * Relational interface extending the base SubCategory
- * This ensures strict type safety for the posts array.
- */
 export interface SubCategoryWithPosts extends SubCategory {
   posts: Post[];
   category?: Category;
@@ -18,53 +15,57 @@ export interface SubCategoryWithPosts extends SubCategory {
   };
 }
 
-// In Next.js 15, params is a Promise. If using 14, remove 'await'
+// searchParams is now a Promise in Next.js 15
 interface PageProps {
   params: Promise<{ categorySlug: string; slug: string; sub: string }>;
+  searchParams: Promise<{ page?: string }>;
 }
 
-export default async function SubCategoryPage({ params }: PageProps) {
-  // 1. Await and Destructure params
+export default async function SubCategoryPage({
+  params,
+  searchParams,
+}: PageProps) {
+  // 1. Await both params and searchParams
   const { slug, sub } = await params;
+  const { page } = await searchParams;
+
   const decodedSlug = decodeURIComponent(slug);
   const decodedSub = decodeURIComponent(sub);
+  const currentPage = parseInt(page || "1");
 
   let subcategory: SubCategoryWithPosts | null = null;
+  let meta = { page: 1, limit: 10, total: 0, totalPage: 1 };
 
-  // 2. Data Fetching Logic
   try {
+    // 2. Pass page to the API
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/${decodedSlug}/${decodedSub}`,
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/${decodedSlug}/${decodedSub}?page=${currentPage}&limit=${10}`,
       { cache: "no-store" },
     );
 
-    if (!res.ok) {
-      console.error(`Fetch failed with status: ${res.status}`);
-      return <ErrorPage />;
-    }
+    if (!res.ok) return <ErrorPage />;
 
-    const result: ApiResponse<SubCategoryWithPosts> = await res.json();
+    const result: ApiResponse<SubCategoryWithPosts> & { meta?: any } =
+      await res.json();
 
-    if (!result.success || !result.data) {
-      return <ErrorPage />;
-    }
+    if (!result.success || !result.data) return <ErrorPage />;
 
     subcategory = result.data;
+    meta = result.meta || meta;
   } catch (error) {
     console.error("CATEGORY_FETCH_ERROR:", error);
     return <ErrorPage />;
   }
 
-  // 3. Render
   return (
-    <main className="container mx-auto px-4 py-6 space-y-6">
+    <main className="container    py-6 space-y-6">
       <Breadcrumb />
-
-      {/* Pass the typed subcategory to your Client Component.
-         The Client Component should receive it as:
-         { subcategory: SubCategoryWithPosts }
-      */}
-      <ClientComponent subcategory={subcategory} />
+      {/* Pass subcategory, meta, and the base slug for link construction */}
+      <ClientComponent
+        subcategory={subcategory}
+        meta={meta}
+        basePath={`/category/${slug}/${sub}`}
+      />
     </main>
   );
 }

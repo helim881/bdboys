@@ -18,8 +18,7 @@ export async function GET(request: NextRequest) {
     // ২. পেজিনেটেড ক্যাটাগরি ডাটা ফেচ
     const categoriesWithPosts = await prisma.category.findMany({
       where: { type: "POST" },
-      skip: skip,
-      take: limit,
+
       include: {
         posts: {
           where: { status: "PUBLISHED" },

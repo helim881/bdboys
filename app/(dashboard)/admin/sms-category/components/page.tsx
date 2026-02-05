@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 
 const CategoryModal = ({ onClose, onSuccess, initialData }: any) => {
   const [name, setName] = useState(initialData?.name || "");
-  const [type, setType] = useState(initialData?.type || "POST");
+  const [type, setType] = useState(initialData?.type || "SMS");
 
   // New State for SEO fields
   const [metaTitle, setMetaTitle] = useState(initialData?.metaTitle || "");

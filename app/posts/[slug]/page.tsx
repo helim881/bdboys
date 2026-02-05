@@ -1,6 +1,7 @@
-import Breadcrumb from "@/components/breadcumb";
+import { authOptions } from "@/app/api/auth/option";
 import prisma from "@/lib/db";
 import { Metadata } from "next";
+import { getServerSession } from "next-auth";
 import { notFound } from "next/navigation";
 import PostClientView from "./components/post-client";
 
@@ -31,15 +32,11 @@ export async function generateMetadata({
 }
 
 export default async function Page({ params }: { params: { slug: string } }) {
-  // ২. স্লাগ ডিকোড করা (বাংলার জন্য অপরিহার্য)
   const decodedSlug = decodeURIComponent(params.slug);
-
+  const session = await getServerSession(authOptions);
   const post = await prisma.post.findFirst({
     where: {
-      OR: [
-        { slug: decodedSlug }, // বাংলা স্লাগ
-        { slug: params.slug }, // ইংরেজি বা এনকোডেড স্লাগ
-      ],
+      OR: [{ slug: decodedSlug }, { slug: params.slug }],
     },
     include: {
       category: true,
@@ -52,7 +49,20 @@ export default async function Page({ params }: { params: { slug: string } }) {
     notFound();
   }
 
-  // ৩. ভিউ কাউন্ট আপডেট (ব্যাকগ্রাউন্ডে করা ভালো)
+  // 1. Fetch Total Posts and Total Views
+  // You can wrap these in a Promise.all for better performance
+  const [totalPosts, viewsAggregate] = await Promise.all([
+    prisma.post.count(), // Total number of articles
+    prisma.post.aggregate({
+      _sum: {
+        views: true, // Sum of all 'views' columns
+      },
+    }),
+  ]);
+
+  const totalViews = viewsAggregate._sum.views || 0;
+
+  // 2. Update View Count (Background)
   try {
     await prisma.post.update({
       where: { id: post.id },
@@ -62,10 +72,12 @@ export default async function Page({ params }: { params: { slug: string } }) {
     console.error("View count update failed", error);
   }
 
+  // Pass these stats to your Client Component
   return (
-    <div className="container mx-auto px-4 py-6">
-      <Breadcrumb />
-      <PostClientView post={post} />
-    </div>
+    <PostClientView
+      post={post}
+      stats={{ totalPosts, totalViews }}
+      user={session?.user}
+    />
   );
 }

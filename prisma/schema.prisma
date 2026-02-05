@@ -29,6 +29,7 @@ model User {
   sessions Session[]
   posts    Post[]
   sms      Sms[]
+  comments Comment[]
 
   @@index([email])
   @@index([role])
@@ -137,17 +138,40 @@ model Post {
   authorId String @map("author_id")
   author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
-  status    PostStatus @default(DRAFT)
-  views     Int        @default(0)
-  likeCount Int        @default(0) @map("like_count")
-
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  scheduledAt DateTime? @map("scheduled_at")
+  status      PostStatus @default(DRAFT)
+  views       Int        @default(0)
+  likeCount   Int        @default(0) @map("like_count")
+  comments    Comment[]
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  scheduledAt DateTime?  @map("scheduled_at")
 
   @@unique([authorId, slug])
   @@index([status])
   @@map("posts")
+}
+
+model Comment {
+  id      String @id @default(cuid())
+  content String @db.Text
+
+  // Relations
+  postId String @map("post_id")
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  // Optional: Link to a registered user
+  userId String? @map("user_id")
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Fields for guest commenters
+  authorName  String? @map("author_name")
+  authorEmail String? @map("author_email")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([postId])
+  @@map("comments")
 }
 
 model Sms {
@@ -178,13 +202,27 @@ model Sms {
 }
 
 model Setting {
-  id          Int      @id @default(1)
-  siteName    String   @default("BDBOYS.top")
-  siteLogo    String?
-  description String   @default("Best Bangla SMS Collection")
-  keywords    String   @default("sms, bangla, tunes")
-  facebookUrl String?
-  updatedAt   DateTime @updatedAt
+  id Int @id @default(1)
+
+  // Branding & Identity
+  siteName  String  @default("BDBOYS.top")
+  siteUrl   String? @default("https://bdboys.top")
+  siteEmail String?
+  siteLogo  String? // URL to the logo image
+
+  // SEO Configuration
+  description String  @default("Best Bangla SMS Collection")
+  keywords    String  @default("sms, bangla, tunes")
+  googleMeta  String? @db.Text // Verification code
+
+  // Social & Analytics
+  facebookUrl  String?
+  fbAdminId    String?
+  fbAppId      String?
+  googlePlusId String?
+  analyticsId  String?
+
+  updatedAt DateTime @updatedAt
 }
 
 model Ad {

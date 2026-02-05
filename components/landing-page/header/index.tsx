@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import UserMenu from "./user-menu";
 
 export default function Header({
   logo,
@@ -16,21 +17,6 @@ export default function Header({
   const [isOpen, setIsOpen] = useState(false);
   const [adCode, setAdCode] = useState("");
 
-  const getDashboardUrl = () => {
-    const role = (session?.user?.role as string) || "USER";
-
-    const routes: Record<string, string> = {
-      SUPER_ADMIN: "/dashboard/admin",
-      ADMIN: "/dashboard/admin",
-      EDITOR: "/dashboard/editor",
-      AUTHOR: "/dashboard/author",
-      CONTRIBUTOR: "/dashboard/contributor",
-      USER: "/dashboard/user",
-    };
-
-    return routes[role] || "/dashboard/user";
-  };
-
   useEffect(() => {
     // Fetching the Header Ad
     fetch(`/api/ads/header_ad`)
@@ -41,9 +27,9 @@ export default function Header({
   }, []);
 
   return (
-    <header className="relative border-b">
+    <header className="relative border">
       {/* 1. TOP HEADER: Logo and User Profile */}
-      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div className="container    py-3 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2">
           {logo ? (
             <div className="relative h-8 w-32">
@@ -66,16 +52,7 @@ export default function Header({
           {status === "loading" ? (
             <div className="h-6 w-16 bg-slate-100 animate-pulse rounded"></div>
           ) : session ? (
-            <div className="relative text-gray-700">
-              <button className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-md hover:bg-slate-200 transition-all">
-                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-[10px] text-white">
-                  {session?.user?.name?.charAt(0).toUpperCase()}
-                </div>
-                <span className="text-sm font-medium hidden sm:inline">
-                  {session?.user?.name}
-                </span>
-              </button>
-            </div>
+            <UserMenu session={session} />
           ) : (
             <Link
               href="/auth"

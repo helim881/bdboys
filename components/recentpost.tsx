@@ -34,7 +34,7 @@ export default function RecentPost() {
 
     fetchData();
   }, []);
-  console.log(adCode);
+
   if (loading) {
     return (
       <div className="flex justify-center p-8 border border-[#B8D1E5] bg-white">

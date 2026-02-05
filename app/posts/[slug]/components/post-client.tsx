@@ -1,46 +1,148 @@
 "use client";
 
+import { createComment, toggleLike } from "@/actions/action.post";
 import RecentPost from "@/components/recentpost";
-import { Calendar, Eye, Heart } from "lucide-react";
+import {
+  BarChart3,
+  Calendar,
+  Eye,
+  Facebook,
+  FileText,
+  Heart,
+  LogIn,
+  MessageSquare,
+  Send,
+  SendHorizontal,
+  Twitter,
+  User,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { WatermarkedImage } from "./watermarkimage";
 
-const PostClientView = ({ post }: { post: any }) => {
+const PostClientView = ({
+  post,
+  stats,
+  user,
+}: {
+  post: any;
+  stats?: { totalPosts: number; totalViews: number };
+  user: any;
+}) => {
   const [isLiked, setIsLiked] = useState(false);
+  const [likes, setLikes] = useState(post.likeCount || 0); // Local like count
+
+  const [commentText, setCommentText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [allComments, setAllComments] = useState(post.comments || []); // Initialize with existing comments
+
   const [ads, setAds] = useState({ onArticle: "", afterArticle: "" });
+  const [siteName, setSiteName] = useState("BDBOYS.COM");
+
+  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+  const shareTitle = post.title;
 
   useEffect(() => {
-    const fetchAds = async () => {
+    // Check localStorage if the user has already liked this post (Simple client-side persistence)
+    const hasLiked = localStorage.getItem(`liked_${post.id}`);
+    if (hasLiked) setIsLiked(true);
+
+    const fetchData = async () => {
       try {
-        const [onRes, afterRes] = await Promise.all([
+        const [onRes, afterRes, settingsRes, comments] = await Promise.all([
           fetch("/api/ads/on_article_ad"),
           fetch("/api/ads/after_article_ad"),
+          fetch("/api/site-setting"),
+          fetch(`/api/comments/${post.id}`),
         ]);
+
         const onData = await onRes.json();
         const afterData = await afterRes.json();
+        const settingsData = await settingsRes.json();
+        const result = await comments.json();
 
+        setAllComments(result);
         setAds({
           onArticle: onData.status === "active" ? onData.code : "",
           afterArticle: afterData.status === "active" ? afterData.code : "",
         });
+
+        if (settingsData?.siteName) setSiteName(settingsData.siteName);
       } catch (err) {
-        console.error("Ads fetch failed", err);
+        console.error("Data fetch failed", err);
       }
     };
-    fetchAds();
-  }, []);
+    fetchData();
+  }, [post.id]);
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
+  // --- NEW LIKE FUNCTION ---
+  const handleLike = async () => {
+    const newStatus = !isLiked;
+    const action = newStatus ? "like" : "unlike";
+
+    // 1. Optimistic UI update
+    setIsLiked(newStatus);
+    setLikes((prev: number) => (newStatus ? prev + 1 : prev - 1));
+
+    // 2. Call Server Action
+    const result = await toggleLike(post.id, action);
+
+    if (result.success) {
+      // Update with actual DB count
+      setLikes(result.newCount);
+      if (newStatus) {
+        localStorage.setItem(`liked_${post.id}`, "true");
+      } else {
+        localStorage.removeItem(`liked_${post.id}`);
+      }
+    } else {
+      // Rollback on failure
+      setIsLiked(!newStatus);
+      setLikes((prev: number) => (newStatus ? prev - 1 : prev + 1));
+      alert("Error updating like. Please try again.");
+    }
   };
 
-  // Logic to inject ad after the first paragraph
+  const shareOnFacebook = () => {
+    window.open(
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+      "_blank",
+    );
+  };
+
+  const shareOnTwitter = () => {
+    window.open(
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTitle)}&url=${encodeURIComponent(shareUrl)}`,
+      "_blank",
+    );
+  };
+
+  const shareOnWhatsApp = () => {
+    window.open(
+      `https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + " " + shareUrl)}`,
+      "_blank",
+    );
+  };
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return alert("লগইন করুন");
+    if (!commentText.trim()) return;
+
+    setIsSubmitting(true);
+    const result = await createComment(post.id, user?.name, commentText);
+
+    if (result.success) {
+      setAllComments([result.comment, ...allComments]);
+      setCommentText("");
+    }
+    setIsSubmitting(false);
+  };
+
   const renderContentWithAds = (content: string, adCode: string) => {
     if (!adCode) return <div dangerouslySetInnerHTML={{ __html: content }} />;
-
     const paragraphs = content.split("</p>");
     if (paragraphs.length > 1) {
-      // Injecting ad after the first paragraph
       paragraphs[0] =
         paragraphs[0] +
         `</p><div class="my-6 flex justify-center">${adCode}</div>`;
@@ -53,69 +155,210 @@ const PostClientView = ({ post }: { post: any }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white font-sans">
-      <main className="container mx-auto px-4 py-8">
+      <main className="container py-8">
         <article className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 mb-8">
           {/* Featured Image */}
           <div className="relative h-64 md:h-96 overflow-hidden rounded-xl">
             <WatermarkedImage
               src={post.image || "https://via.placeholder.com/1200x600"}
               alt={post.title}
-              siteName="BDBOYS.COM" // 🛠️ Pass your site name here
+              siteName={siteName}
             />
-
-            {/* The gradient overlay can stay for UI beauty, but the watermark is in the pixels */}
-            <div className="absolute  bottom-2 right-5 bg-gradient-to-t from-black/60 to-transparent pointer-events-none">
-              <span className="text-white font-bold"> BDBOYS.COM</span>
+            <div className="absolute bottom-2 right-5 bg-gradient-to-t from-black/60 to-transparent pointer-events-none">
+              <span className="text-white font-bold uppercase">{siteName}</span>
             </div>
           </div>
 
-          {/* Post Meta */}
-          <div className="p-6 border-b border-gray-100">
-            {/* ... existing author meta code ... */}
-            <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-              <div className="flex items-center space-x-1">
-                <Calendar className="w-4 h-4" />
-                <span>
-                  {new Date(post.createdAt).toLocaleDateString("bn-BD")}
-                </span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <Eye className="w-4 h-4" />
-                <span>{post.views} ভিউ</span>
-              </div>
-            </div>
-          </div>
-
-          {/* 🚀 Placement: Ad On Articles (Inside Content) */}
-          <div className="p-8 prose prose-lg max-w-none prose-img:rounded-xl prose-headings:text-[#003366]">
+          {/* Content Section */}
+          <div className="p-4 prose prose-lg max-w-none prose-img:rounded-xl prose-headings:text-[#003366]">
+            <h1 className="text-3xl font-bold mb-6">{post.title}</h1>
             {renderContentWithAds(post.contentHtml, ads.onArticle)}
           </div>
+
+          {/* Author Meta & User Stats */}
+          <div className="p-4 border-y border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex items-start space-x-4">
+              <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-blue-100 shrink-0">
+                {post.author?.image ? (
+                  <Image
+                    src={post.author.image}
+                    alt={post.author.name}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                    <User className="text-gray-400 w-6 h-6" />
+                  </div>
+                )}
+              </div>
+              <div className="space-y-2">
+                <div>
+                  <h4 className="font-bold text-gray-900 leading-tight">
+                    {post.author?.name || "Anonymous"}
+                  </h4>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">
+                    {post.author?.role || "Author"} • {siteName}
+                  </p>
+                </div>
+                {stats && (
+                  <div className="flex gap-3 pt-1">
+                    <div className="flex items-center text-[11px] font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-100">
+                      <FileText className="w-3 h-3 mr-1" /> {stats.totalPosts}{" "}
+                      পোস্ট
+                    </div>
+                    <div className="flex items-center text-[11px] font-bold bg-green-50 text-green-700 px-2 py-0.5 rounded-md border border-green-100">
+                      <BarChart3 className="w-3 h-3 mr-1" />{" "}
+                      {stats?.totalViews?.toLocaleString("bn-BD")} মোট ভিউ
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-wrap gap-4 text-sm text-gray-600 md:justify-end">
+                <div className="flex items-center space-x-1">
+                  <Calendar className="w-4 h-4" />
+                  <span>
+                    {new Date(post.createdAt).toLocaleDateString("bn-BD")}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Eye className="w-4 h-4" />
+                  <span>{post.views} ভিউ</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 md:justify-end">
+                <span className="text-xs font-bold text-gray-400 uppercase mr-1">
+                  শেয়ার:
+                </span>
+                <button
+                  onClick={shareOnFacebook}
+                  className="p-2 bg-[#1877F2] text-white rounded-full hover:scale-110 transition-transform"
+                >
+                  <Facebook className="w-4 h-4 fill-current" />
+                </button>
+                <button
+                  onClick={shareOnTwitter}
+                  className="p-2 bg-[#000000] text-white rounded-full hover:scale-110 transition-transform"
+                >
+                  <Twitter className="w-4 h-4 fill-current" />
+                </button>
+                <button
+                  onClick={shareOnWhatsApp}
+                  className="p-2 bg-[#25D366] text-white rounded-full hover:scale-110 transition-transform"
+                >
+                  <Send className="w-4 h-4 fill-current rotate-[-45deg] translate-x-0.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Ad After Content */}
           {ads.afterArticle && (
-            <div className="mb-8 w-full flex justify-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+            <div className="w-full flex justify-center p-4">
               <div dangerouslySetInnerHTML={{ __html: ads.afterArticle }} />
             </div>
           )}
 
-          {/* Post Actions */}
-          <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-between items-center">
+          {/* Post Actions (Like) */}
+          <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-center">
             <button
               onClick={handleLike}
-              className={`flex items-center space-x-2 px-6 py-2 rounded-full transition-all ${
+              className={`flex items-center space-x-3 px-8 py-2.5 rounded-full transition-all active:scale-95 ${
                 isLiked
-                  ? "bg-red-600 text-white shadow-md"
-                  : "bg-white text-gray-700 border border-gray-300"
+                  ? "bg-red-600 text-white shadow-lg"
+                  : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 shadow-sm"
               }`}
             >
-              <Heart className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`} />
-              <span className="font-bold">
-                {isLiked ? "লাইক দেওয়া হয়েছে" : "লাইক দিন"}
-              </span>
+              <Heart
+                className={`w-5 h-5 transition-transform ${isLiked ? "fill-current scale-110" : "group-hover:scale-110"}`}
+              />
+              <div className="flex flex-col items-start leading-tight">
+                <span className="font-bold text-sm">
+                  {isLiked ? "লাইক দেওয়া হয়েছে" : "লাইক দিন"}
+                </span>
+                <span className="text-[10px] opacity-80">
+                  {likes.toLocaleString("bn-BD")} টি লাইক
+                </span>
+              </div>
             </button>
           </div>
+          <div className="p-6   bg-white">
+            <div className="flex items-center gap-2  ">
+              <MessageSquare className="w-6 h-6 text-blue-600" />
+              <h2 className="text-2xl font-bold">মন্তব্য সমূহ</h2>
+            </div>
+
+            {/* Form Conditional Rendering */}
+            {user ? (
+              <form onSubmit={handleCommentSubmit} className="  space-y-4">
+                <textarea
+                  placeholder="আপনার মন্তব্য লিখুন..."
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none min-h-[120px] transition-all"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 disabled:bg-gray-300 flex items-center gap-2 shadow-md shadow-blue-200"
+                >
+                  {isSubmitting ? "পাঠানো হচ্ছে..." : "মন্তব্য জমা দিন"}{" "}
+                  <SendHorizontal className="w-4 h-4" />
+                </button>
+              </form>
+            ) : (
+              <div className="mb-10 p-8 border-2 border-dashed border-blue-100 rounded-2xl text-center bg-blue-50/30">
+                <LogIn className="w-10 h-10 text-blue-400 mx-auto mb-3" />
+                <p className="text-gray-600 mb-4 font-medium">
+                  মন্তব্য বা লাইক দিতে আপনাকে লগইন করতে হবে।
+                </p>
+                <Link
+                  href="/auth"
+                  className="inline-block bg-blue-600 text-white px-8 py-2.5 rounded-xl font-bold hover:shadow-lg transition-all"
+                >
+                  লগইন করুন
+                </Link>
+              </div>
+            )}
+          </div>
+          {/* List */}
+          <div className="space-y-6 p-4">
+            {allComments.length > 0 ? (
+              allComments.map((comment: any) => (
+                <div key={comment.id} className="flex flex-col gap-4 group">
+                  <div className="flex-grow">
+                    <div className="bg-gray-50 p-4  rounded-2xl group-hover:bg-gray-100 transition-colors border border-gray-100">
+                      <div className="flex gap-2 items-start mb-2">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center font-bold text-blue-700 shrink-0">
+                          {comment.authorName[0]}
+                        </div>
+                        <span className="font-bold text-gray-900">
+                          {comment.authorName}
+                        </span>
+                        <span className="text-[10px] text-gray-400">
+                          {new Date(comment.createdAt).toLocaleDateString(
+                            "bn-BD",
+                          )}
+                        </span>
+                      </div>
+                      <p className="text-gray-700 text-sm leading-relaxed">
+                        {comment.content}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-gray-400 py-10 italic">
+                এখনও কোনো মন্তব্য নেই।
+              </p>
+            )}
+          </div>
         </article>
-
-        {/* 🚀 Placement: Ad After Articles */}
-
         <RecentPost />
       </main>
     </div>

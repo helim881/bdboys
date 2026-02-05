@@ -1,134 +1,265 @@
 "use client";
 
+import { updateSettingsAction } from "@/actions/actions.setting";
+import {
+  CheckCircle2,
+  Code2,
+  Globe,
+  Image as ImageIcon,
+  Loader2,
+  Mail,
+  Search,
+  Share2,
+} from "lucide-react";
 import { useState } from "react";
 
-import { updateSettingsAction } from "@/actions/actions.setting";
-import { Globe, Image as ImageIcon, Save, Search } from "lucide-react";
-
-export default function AdminSettings({
-  settings,
-}: {
-  settings: {
-    siteLogo: string | null;
-    siteName: string | null;
-    description: string | null;
-    keywords: string | null;
-    facebookUrl: string | null;
-  };
-}) {
+export default function AdminSettings({ settings }: { settings: any }) {
   const [loading, setLoading] = useState(false);
-  const [preview, setPreview] = useState(settings?.siteLogo || "");
+  const [logoPreview, setLogoPreview] = useState(settings?.siteLogo || "");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     const formData = new FormData(e.currentTarget);
-    formData.append("currentLogo", settings?.siteLogo || "");
 
-    const res = await updateSettingsAction(formData);
-    if (res.success) alert("Settings updated!");
-    setLoading(false);
+    try {
+      const res = await updateSettingsAction(formData);
+      if (res.success) alert("Settings synchronized!");
+    } catch (error) {
+      alert("Error saving settings.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <div className="p-6 max-w-4xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Global Settings</h1>
-        <p className="text-sm text-gray-500">
-          Manage site-wide identity and SEO configuration.
-        </p>
+    <div className="min-h-screen bg-slate-50/50 pb-24">
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            System Management
+          </h1>
+          <p className="text-slate-500 text-sm">
+            Configure your global site variables and SEO metadata.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* 1. Branding & Identity */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-1">
+              <h2 className="font-semibold text-slate-800 flex items-center gap-2">
+                <Globe size={18} className="text-blue-500" /> Identity
+              </h2>
+              <p className="text-xs text-slate-500">
+                Website name, URL, and branding assets.
+              </p>
+            </div>
+
+            <div className="md:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">
+                    Site Name
+                  </label>
+                  <input
+                    name="siteName"
+                    defaultValue={settings?.siteName}
+                    className="w-full px-3 py-2 bg-slate-50 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">
+                    Site URL
+                  </label>
+                  <input
+                    name="siteUrl"
+                    defaultValue={settings?.siteUrl}
+                    className="w-full px-3 py-2 bg-slate-50 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase">
+                  Site Email
+                </label>
+                <div className="relative">
+                  <Mail
+                    className="absolute left-3 top-2.5 text-slate-400"
+                    size={16}
+                  />
+                  <input
+                    name="siteEmail"
+                    type="email"
+                    defaultValue={settings?.siteEmail}
+                    className="w-full pl-10 pr-3 py-2 bg-slate-50 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <label className="text-xs font-bold text-slate-500 uppercase block mb-2">
+                  Site Logo
+                </label>
+                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                  <div className="h-16 w-16 bg-white rounded-lg border flex items-center justify-center overflow-hidden shrink-0">
+                    {logoPreview ? (
+                      <img
+                        src={logoPreview}
+                        className="object-contain"
+                        alt="Logo"
+                      />
+                    ) : (
+                      <ImageIcon className="text-slate-300" />
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <input
+                      type="file"
+                      name="siteLogo"
+                      accept="image/*"
+                      onChange={(e) =>
+                        setLogoPreview(URL.createObjectURL(e.target.files![0]))
+                      }
+                      className="text-xs file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                    <p className="text-[10px] text-slate-400 font-medium">
+                      Recommended: PNG or SVG with transparent background.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. SEO Configuration */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t">
+            <div className="space-y-1">
+              <h2 className="font-semibold text-slate-800 flex items-center gap-2">
+                <Search size={18} className="text-emerald-500" /> SEO & Meta
+              </h2>
+              <p className="text-xs text-slate-500">
+                How your site appears in Google and search engines.
+              </p>
+            </div>
+
+            <div className="md:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase">
+                  Meta Description
+                </label>
+                <textarea
+                  name="description"
+                  rows={3}
+                  defaultValue={settings?.description}
+                  className="w-full px-3 py-2 bg-slate-50 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase">
+                  Keywords
+                </label>
+                <input
+                  name="keywords"
+                  defaultValue={settings?.keywords}
+                  placeholder="sms, bangla, status..."
+                  className="w-full px-3 py-2 bg-slate-50 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1">
+                  <Code2 size={12} /> Google Verification Code
+                </label>
+                <input
+                  name="googleMeta"
+                  defaultValue={settings?.googleMeta}
+                  placeholder="<meta name='google-site-verification' ... />"
+                  className="w-full px-3 py-2 bg-slate-50 border rounded-lg text-sm font-mono focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Social & Analytics */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t">
+            <div className="space-y-1">
+              <h2 className="font-semibold text-slate-800 flex items-center gap-2">
+                <Share2 size={18} className="text-indigo-500" /> Integrations
+              </h2>
+              <p className="text-xs text-slate-500">
+                Connect tracking IDs and social platform profiles.
+              </p>
+            </div>
+
+            <div className="md:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">
+                    Facebook URL
+                  </label>
+                  <input
+                    name="facebookUrl"
+                    defaultValue={settings?.facebookUrl}
+                    className="w-full px-3 py-2 bg-slate-50 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">
+                    Analytics ID (GA4)
+                  </label>
+                  <input
+                    name="analyticsId"
+                    defaultValue={settings?.analyticsId}
+                    placeholder="G-XXXXXXXXXX"
+                    className="w-full px-3 py-2 bg-slate-50 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase text-blue-600">
+                    FB App ID
+                  </label>
+                  <input
+                    name="fbAppId"
+                    defaultValue={settings?.fbAppId}
+                    className="w-full px-3 py-2 bg-slate-50 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase text-blue-600">
+                    FB Admin ID
+                  </label>
+                  <input
+                    name="fbAdminId"
+                    defaultValue={settings?.fbAdminId}
+                    className="w-full px-3 py-2 bg-slate-50 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Floating Save Action */}
+          <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-slate-200 p-4 z-50">
+            <div className="max-w-5xl mx-auto flex justify-end">
+              <button
+                disabled={loading}
+                className="flex items-center gap-2 bg-slate-900 text-white px-8 py-2.5 rounded-lg font-bold hover:bg-black transition-all active:scale-95 disabled:bg-slate-400"
+              >
+                {loading ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <CheckCircle2 size={18} />
+                )}
+                {loading ? "Saving..." : "Save All Settings"}
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Branding Section */}
-        <div className="bg-white border rounded-lg shadow-sm">
-          <div className="p-4 border-b bg-gray-50 flex items-center gap-2 font-semibold">
-            <Globe size={18} /> Branding & Identity
-          </div>
-          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Site Name
-                </label>
-                <input
-                  name="siteName"
-                  defaultValue={settings?.siteName || "bdboys"}
-                  className="w-full border p-2 rounded outline-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Facebook URL
-                </label>
-                <input
-                  name="facebookUrl"
-                  defaultValue={settings?.facebookUrl || ""}
-                  className="w-full border p-2 rounded outline-blue-500"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-4 bg-gray-50">
-              {preview ? (
-                <img
-                  src={preview}
-                  alt="Logo"
-                  className="h-16 mb-2 object-contain"
-                />
-              ) : (
-                <ImageIcon size={40} className="text-gray-300 mb-2" />
-              )}
-              <input
-                type="file"
-                name="logo"
-                accept="image/*"
-                onChange={(e) =>
-                  setPreview(URL.createObjectURL(e.target.files![0]))
-                }
-                className="text-xs file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-blue-50 file:text-blue-700"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* SEO Section */}
-        <div className="bg-white border rounded-lg shadow-sm">
-          <div className="p-4 border-b bg-gray-50 flex items-center gap-2 font-semibold">
-            <Search size={18} /> SEO Configuration
-          </div>
-          <div className="p-4 space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Meta Description
-              </label>
-              <textarea
-                name="description"
-                rows={3}
-                defaultValue={settings?.description || ""}
-                className="w-full border p-2 rounded outline-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Keywords (Comma separated)
-              </label>
-              <input
-                name="keywords"
-                defaultValue={settings?.keywords || ""}
-                className="w-full border p-2 rounded outline-blue-500"
-              />
-            </div>
-          </div>
-        </div>
-
-        <button
-          disabled={loading}
-          className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded font-bold hover:bg-blue-700 disabled:bg-gray-400"
-        >
-          <Save size={18} /> {loading ? "Saving..." : "Save All Settings"}
-        </button>
-      </form>
     </div>
   );
 }

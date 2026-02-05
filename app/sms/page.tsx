@@ -1,6 +1,5 @@
 import Breadcrumb from "@/components/breadcumb";
 import ErrorPage from "@/components/error/error";
-import { NotFound } from "@/components/not-found";
 import RecentPost from "@/components/recentpost";
 import { Metadata } from "next";
 import SmsSection from "./components/sms-section";
@@ -68,14 +67,6 @@ export default async function SmsZonePage() {
     categoriesWithSms = result.data;
   } catch (error) {
     console.error("SMS_CATEGORY_FETCH_ERROR:", error);
-    return <ErrorPage />;
-  }
-  console.log(categoriesWithSms);
-  if (categoriesWithSms.length === 0) {
-    return <NotFound />;
-  }
-
-  if (!categoriesWithSms || categoriesWithSms.length === 0) {
     return <ErrorPage />;
   }
 

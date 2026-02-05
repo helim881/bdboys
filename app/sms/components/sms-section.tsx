@@ -16,10 +16,12 @@ export default function SmsSection({ cat }: { cat: any }) {
       </div>
 
       {/* Content Area */}
-      <div className="px-4">
-        {cat.sms.map((sms: any) => (
-          <SmsCard key={sms.id} sms={sms} />
-        ))}
+      <div className="">
+        {cat?.sms && cat.sms.length > 0 ? (
+          cat.sms.map((sms: any) => <SmsCard key={sms.id} sms={sms} />)
+        ) : (
+          <p className="text-gray-500 text-center">No messages yet.</p>
+        )}
       </div>
 
       {/* Bottom Link (Optional, seen in "Popular SMS" section) */}

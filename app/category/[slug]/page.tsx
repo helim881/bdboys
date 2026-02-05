@@ -104,7 +104,7 @@ export default async function CategoryPage({
   }
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="container mx-auto   py-8">
       <Breadcrumb />
 
       <CategoryClientComponent category={category} slug={slug} />

@@ -127,3 +127,44 @@ export async function updateStatusAction(
     return { success: false };
   }
 }
+export async function toggleLike(postId: string, action: "like" | "unlike") {
+  try {
+    const updatedPost = await prisma.post.update({
+      where: { id: postId },
+      data: {
+        likeCount: {
+          [action === "like" ? "increment" : "decrement"]: 1,
+        },
+      },
+    });
+
+    // Optional: if you want to revalidate the cache
+    // revalidatePath(`/post/${updatedPost.slug}`);
+
+    return { success: true, newCount: updatedPost.likeCount };
+  } catch (error) {
+    console.error("Like error:", error);
+    return { success: false };
+  }
+}
+
+export async function createComment(
+  postId: string,
+  authorName: string,
+  content: string,
+) {
+  try {
+    const comment = await prisma.comment.create({
+      data: {
+        postId,
+        authorName,
+        content,
+      },
+    });
+
+    revalidatePath(`/post/[slug]`, "page"); // Refresh the page to show new comment
+    return { success: true, comment };
+  } catch (error) {
+    return { success: false, error: "মন্তব্য পোস্ট করতে সমস্যা হয়েছে।" };
+  }
+}

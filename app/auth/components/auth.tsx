@@ -113,7 +113,7 @@ export default function AuthPage() {
           toast.success("🎉 Login successful! Welcome back!");
           const session = await getSession();
           const role = session?.user?.role || "user";
-          router.push(`/${role.toLocaleLowerCase()}/dashboard`);
+          router.push(`/`);
         }
       } else {
         // --- REGISTER LOGIC ---

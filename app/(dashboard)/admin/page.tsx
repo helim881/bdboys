@@ -47,18 +47,8 @@ const AdminPanel = () => {
     },
 
     {
-      title: "FB Auto Poster",
-      href: "/admin/fb-poster",
-      desc: "Fb Auto Poster Settings.",
-    },
-    {
-      title: "Tube Sitemap",
-      href: "/admin/sitemap",
-      desc: "Manage Tube Sitemap.",
-    },
-    {
       title: "System Management",
-      href: "/admin/system",
+      href: "/admin/settings",
       desc: "Manage Site Default System Setting.",
     },
   ];

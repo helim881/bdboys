@@ -14,6 +14,7 @@ export async function GET(
     // Pagination params
     const page = Number(searchParams.get("page")) || 1;
     const limit = Number(searchParams.get("limit")) || 10;
+
     const skip = (page - 1) * limit;
 
     const subcategoriesSms = await prisma.subCategory.findUnique({
@@ -22,6 +23,8 @@ export async function GET(
         category: true,
         sms: {
           where: { status: "PUBLISHED" },
+          take: limit,
+          skip,
           orderBy: { createdAt: "desc" },
           include: { author: { select: { name: true } } },
         },
@@ -36,7 +39,7 @@ export async function GET(
     }
 
     // 2️⃣ Count total posts
-    const totalPosts = await prisma.post.count({
+    const totalPosts = await prisma.sms.count({
       where: {
         subCategoryId: subcategoriesSms.id,
         status: "PUBLISHED",
