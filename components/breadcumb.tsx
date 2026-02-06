@@ -14,7 +14,7 @@ export default function Breadcrumb() {
     .map((segment) => decodeURIComponent(segment));
 
   return (
-    <nav aria-label="Breadcrumb" className="mb-4">
+    <nav aria-label="Breadcrumb" className=" border rounded-md my-2 p-4">
       <ol className="flex items-center space-x-2 text-xs font-medium text-gray-500">
         {/* Home Link */}
         <li className="flex items-center">

@@ -15,7 +15,7 @@ export default async function PostsListPage({
   searchParams: { page?: string };
 }) {
   const currentPage = Number(searchParams.page) || 1;
-  const pageSize = 10;
+  const pageSize = 15;
   const skip = (currentPage - 1) * pageSize;
 
   const totalPosts = await prisma.post.count({

@@ -121,7 +121,7 @@ export default async function CategoryPageSms({ params }: Props) {
   }
 
   return (
-    <main className="bg-gray-100 min-h-screen py-6 px-4">
+    <main className="bg-gray-100 min-h-screen   px-4">
       <SmsCategoryClientComponent category={category} slug={slug} />
     </main>
   );

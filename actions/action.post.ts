@@ -70,7 +70,8 @@ export async function updatePostAction(id: string, data: any) {
       },
     });
 
-    revalidatePath("/admin/posts"); // Adjust path as needed
+    revalidatePath("/admin/posts");
+    revalidatePath(`/post/${updatedPost?.slug}`);
     return { success: true, data: updatedPost };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -102,6 +103,32 @@ export async function movePostAction(formData: {
     });
 
     revalidatePath("/admin/posts/active");
+    return { success: true, message: "Post successfully relocated." };
+  } catch (error) {
+    return {
+      success: false,
+      message: "A server error occurred. Please try again.",
+    };
+  }
+}
+export async function deletePostAction(slug: string) {
+  try {
+    // 1. Verify Post Existence (Mock DB Check)
+    const existingPost = await prisma.post.findUnique({
+      where: { slug },
+    });
+
+    if (!existingPost) {
+      return { success: false, message: "Post no longer exists." };
+    }
+
+    // 2. Perform the Update
+    await prisma.post.delete({
+      where: { slug },
+    });
+
+    revalidatePath(`/post/${existingPost?.slug}`);
+
     return { success: true, message: "Post successfully relocated." };
   } catch (error) {
     return {

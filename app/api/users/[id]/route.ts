@@ -3,6 +3,62 @@ import { UserRole, UserStatus } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
+// GET USER BY ID
+
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const userId = params.id;
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: "User ID is required" },
+        { status: 400 },
+      );
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+        role: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    const postCount = await prisma.post.count({
+      where: { authorId: user?.id },
+    });
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "User not found" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: user,
+        postCount,
+      },
+      { status: 200 },
+    );
+  } catch (error) {
+    console.error("GET_USER_ERROR", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to fetch user" },
+      { status: 500 },
+    );
+  }
+}
 
 export async function PATCH(
   request: Request,

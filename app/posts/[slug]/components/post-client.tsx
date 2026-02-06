@@ -1,14 +1,16 @@
 "use client";
 
-import { createComment, toggleLike } from "@/actions/action.post";
+import {
+  createComment,
+  deletePostAction,
+  toggleLike,
+} from "@/actions/action.post";
+import Breadcrumb from "@/components/breadcumb";
 import RecentPost from "@/components/recentpost";
 import {
-  BarChart3,
-  Calendar,
-  Eye,
   Facebook,
-  FileText,
   Heart,
+  HeartCrack,
   LogIn,
   MessageSquare,
   Send,
@@ -16,27 +18,29 @@ import {
   Twitter,
   User,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import UpdatePostModal from "../../update-dialog";
 import { WatermarkedImage } from "./watermarkimage";
 
 const PostClientView = ({
   post,
   stats,
-  user,
 }: {
   post: any;
-  stats?: { totalPosts: number; totalViews: number };
-  user: any;
+  stats?: any | { postCount: number; totalViewsByAuthor: number };
 }) => {
+  const [open, setOpen] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(post.likeCount || 0); // Local like count
-
+  const session = useSession();
+  const user = session?.data?.user;
   const [commentText, setCommentText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [allComments, setAllComments] = useState(post.comments || []); // Initialize with existing comments
-
+  const [allComments, setAllComments] = useState(post.comments || []); // Initialize with existing
   const [ads, setAds] = useState({ onArticle: "", afterArticle: "" });
   const [siteName, setSiteName] = useState("BDBOYS.COM");
 
@@ -75,7 +79,7 @@ const PostClientView = ({
     };
     fetchData();
   }, [post.id]);
-
+  const router = useRouter();
   // --- NEW LIKE FUNCTION ---
   const handleLike = async () => {
     const newStatus = !isLiked;
@@ -126,7 +130,7 @@ const PostClientView = ({
   };
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return alert("লগইন করুন");
+    if (!user?.name) return alert("লগইন করুন");
     if (!commentText.trim()) return;
 
     setIsSubmitting(true);
@@ -138,7 +142,6 @@ const PostClientView = ({
     }
     setIsSubmitting(false);
   };
-
   const renderContentWithAds = (content: string, adCode: string) => {
     if (!adCode) return <div dangerouslySetInnerHTML={{ __html: content }} />;
     const paragraphs = content.split("</p>");
@@ -152,84 +155,86 @@ const PostClientView = ({
     }
     return <div dangerouslySetInnerHTML={{ __html: content }} />;
   };
-
+  const handleRemove = async (id: string) => {
+    await deletePostAction(id);
+    router.push("/posts");
+  };
+  const hasPrivilege = ["SUPER_ADMIN", "ADMIN", "EDITOR"].includes(user?.role);
+  const isOwner = user?.id === post.authorId;
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white font-sans">
-      <main className="container py-8">
-        <article className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 mb-8">
-          {/* Featured Image */}
-          <div className="relative h-64 md:h-96 overflow-hidden rounded-xl">
-            <WatermarkedImage
-              src={post.image || "https://via.placeholder.com/1200x600"}
-              alt={post.title}
-              siteName={siteName}
-            />
-            <div className="absolute bottom-2 right-5 bg-gradient-to-t from-black/60 to-transparent pointer-events-none">
-              <span className="text-white font-bold uppercase">{siteName}</span>
-            </div>
-          </div>
+    <>
+      <Breadcrumb />
+      {open ? (
+        <UpdatePostModal post={post} setOpen={setOpen} />
+      ) : (
+        <main className="container py-8">
+          <article className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 mb-8">
+            {/* Featured Image */}
+            <div className="p-4 prose prose-lg max-w-none prose-img:rounded-xl prose-headings:text-[#003366] border-b border-gray-200">
+              {/* Post Title */}
+              <h1 className="text-3xl font-bold mb-4">{post?.title}</h1>
 
-          {/* Content Section */}
-          <div className="p-4 prose prose-lg max-w-none prose-img:rounded-xl prose-headings:text-[#003366]">
-            <h1 className="text-3xl font-bold mb-6">{post.title}</h1>
-            {renderContentWithAds(post.contentHtml, ads.onArticle)}
-          </div>
+              {/* Meta Info */}
+              <div className="text-sm text-gray-600 flex flex-wrap gap-4 items-center">
+                <span>
+                  In <strong>{post?.category?.name}</strong>
+                </span>
 
-          {/* Author Meta & User Stats */}
-          <div className="p-4 border-y border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-start space-x-4">
-              <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-blue-100 shrink-0">
-                {post.author?.image ? (
-                  <Image
-                    src={post.author.image}
-                    alt={post.author.name}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                    <User className="text-gray-400 w-6 h-6" />
-                  </div>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Link href={`/profile/${user?.id}`}>
-                  <h4 className="font-bold text-gray-900 leading-tight">
-                    {post.author?.name || "Anonymous"}
-                  </h4>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">
-                    • {siteName}
-                  </p>
-                </Link>
-                {stats && (
-                  <div className="flex gap-3 pt-1">
-                    <div className="flex items-center text-[11px] font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-100">
-                      <FileText className="w-3 h-3 mr-1" /> {stats.totalPosts}{" "}
-                      পোস্ট
+                {/* Formatted Date */}
+                <span>
+                  {post?.createdAt
+                    ? new Date(post.createdAt).toLocaleString("bn-BD", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : ""}
+                </span>
+
+                <span>Views: {post?.views ?? 0}</span>
+
+                {hasPrivilege ||
+                  (isOwner && (
+                    <div className="flex gap-4">
+                      <button
+                        onClick={() => setOpen(true)}
+                        className="text-green-200-600 hover:underline text-sm"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleRemove(post.slug)}
+                        className="text-red-600 hover:underline text-sm"
+                      >
+                        Delete
+                      </button>
                     </div>
-                    <div className="flex items-center text-[11px] font-bold bg-green-50 text-green-700 px-2 py-0.5 rounded-md border border-green-100">
-                      <BarChart3 className="w-3 h-3 mr-1" />{" "}
-                      {stats?.totalViews?.toLocaleString("bn-BD")} মোট ভিউ
-                    </div>
-                  </div>
-                )}
+                  ))}
               </div>
             </div>
 
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-wrap gap-4 text-sm text-gray-600 md:justify-end">
-                <div className="flex items-center space-x-1">
-                  <Calendar className="w-4 h-4" />
-                  <span>
-                    {new Date(post.createdAt).toLocaleDateString("bn-BD")}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <Eye className="w-4 h-4" />
-                  <span>{post.views} ভিউ</span>
-                </div>
+            <div className="relative h-64 md:h-96 overflow-hidden rounded-xl">
+              <WatermarkedImage
+                src={post.image || "https://via.placeholder.com/1200x600"}
+                alt={post.title}
+                siteName={siteName}
+              />
+              <div className="absolute bottom-2 right-5 bg-gradient-to-t from-black/60 to-transparent pointer-events-none">
+                <span className="text-white font-bold uppercase">
+                  {siteName}
+                </span>
               </div>
-              <div className="flex items-center gap-2 md:justify-end">
+            </div>
+
+            {/* Content Section */}
+            <div className="p-4 prose prose-lg max-w-none prose-img:rounded-xl prose-headings:text-[#003366]">
+              {renderContentWithAds(post.contentHtml, ads.onArticle)}
+            </div>
+            {/* Author Meta & User Stats */}
+            <div className="p-4 border-y border-gray-100 flex flex-col   gap-6">
+              <div className="flex items-center gap-2  ">
                 <span className="text-xs font-bold text-gray-400 uppercase mr-1">
                   শেয়ার:
                 </span>
@@ -251,117 +256,155 @@ const PostClientView = ({
                 >
                   <Send className="w-4 h-4 fill-current rotate-[-45deg] translate-x-0.5" />
                 </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Ad After Content */}
-          {ads.afterArticle && (
-            <div className="w-full flex justify-center p-4">
-              <div dangerouslySetInnerHTML={{ __html: ads.afterArticle }} />
-            </div>
-          )}
-
-          {/* Post Actions (Like) */}
-          <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-center">
-            <button
-              onClick={handleLike}
-              className={`flex items-center space-x-3 px-8 py-2.5 rounded-full transition-all active:scale-95 ${
-                isLiked
-                  ? "bg-red-600 text-white shadow-lg"
-                  : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 shadow-sm"
-              }`}
-            >
-              <Heart
-                className={`w-5 h-5 transition-transform ${isLiked ? "fill-current scale-110" : "group-hover:scale-110"}`}
-              />
-              <div className="flex flex-col items-start leading-tight">
-                <span className="font-bold text-sm">
-                  {isLiked ? "লাইক দেওয়া হয়েছে" : "লাইক দিন"}
-                </span>
-                <span className="text-[10px] opacity-80">
-                  {likes.toLocaleString("bn-BD")} টি লাইক
-                </span>
-              </div>
-            </button>
-          </div>
-          <div className="p-6   bg-white">
-            <div className="flex items-center gap-2  ">
-              <MessageSquare className="w-6 h-6 text-blue-600" />
-              <h2 className="text-2xl font-bold">মন্তব্য সমূহ</h2>
-            </div>
-
-            {/* Form Conditional Rendering */}
-            {user ? (
-              <form onSubmit={handleCommentSubmit} className="  space-y-4">
-                <textarea
-                  placeholder="আপনার মন্তব্য লিখুন..."
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none min-h-[120px] transition-all"
-                  required
-                />
                 <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 disabled:bg-gray-300 flex items-center gap-2 shadow-md shadow-blue-200"
+                  className="border rounded-full  p-1 border-orange-600"
+                  onClick={handleLike}
                 >
-                  {isSubmitting ? "পাঠানো হচ্ছে..." : "মন্তব্য জমা দিন"}{" "}
-                  <SendHorizontal className="w-4 h-4" />
+                  <span className="font-bold text-sm">
+                    {isLiked ? (
+                      <Heart
+                        className={`w-5 h-5 text-orange-600 transition-transform ${isLiked ? "fill-current scale-110" : "group-hover:scale-110 "}`}
+                      />
+                    ) : (
+                      <HeartCrack className="text-orange-600" />
+                    )}
+                  </span>
                 </button>
-              </form>
-            ) : (
-              <div className="mb-10 p-8 border-2 border-dashed border-blue-100 rounded-2xl text-center bg-blue-50/30">
-                <LogIn className="w-10 h-10 text-blue-400 mx-auto mb-3" />
-                <p className="text-gray-600 mb-4 font-medium">
-                  মন্তব্য বা লাইক দিতে আপনাকে লগইন করতে হবে।
-                </p>
-                <Link
-                  href="/auth"
-                  className="inline-block bg-blue-600 text-white px-8 py-2.5 rounded-xl font-bold hover:shadow-lg transition-all"
-                >
-                  লগইন করুন
-                </Link>
               </div>
-            )}
-          </div>
-          {/* List */}
-          <div className="space-y-6 p-4">
-            {allComments.length > 0 ? (
-              allComments.map((comment: any) => (
-                <div key={comment.id} className="flex flex-col gap-4 group">
-                  <div className="flex-grow">
-                    <div className="bg-gray-50 p-4  rounded-2xl group-hover:bg-gray-100 transition-colors border border-gray-100">
-                      <div className="flex gap-2 items-start mb-2">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center font-bold text-blue-700 shrink-0">
-                          {comment.authorName[0]}
-                        </div>
-                        <span className="font-bold text-gray-900">
-                          {comment.authorName}
-                        </span>
-                        <span className="text-[10px] text-gray-400">
-                          {new Date(comment.createdAt).toLocaleDateString(
-                            "bn-BD",
-                          )}
-                        </span>
-                      </div>
-                      <p className="text-gray-700 text-sm leading-relaxed">
-                        {comment.content}
-                      </p>
+              <div className="flex items-center space-x-4 p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+                {/* Author Avatar */}
+                <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-blue-100 flex-shrink-0">
+                  {post.author?.image ? (
+                    <Image
+                      src={post.author.image}
+                      alt={post.author.name}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                      <User className="text-gray-400 w-7 h-7" />
                     </div>
+                  )}
+                </div>
+
+                {/* Author Info */}
+                <div className="flex-1 space-y-1">
+                  <Link href={`/my/${post?.author.id}`} className="block">
+                    <h4 className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors">
+                      {post.author?.name || "Anonymous"}
+                    </h4>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">
+                      {siteName}
+                    </p>
+                  </Link>
+
+                  {/* Stats */}
+                  <div className="flex space-x-4 text-sm text-gray-600 mt-1">
+                    <p>
+                      <span className="font-medium">
+                        {stats?.authorPostCount || 0}
+                      </span>{" "}
+                      posts
+                    </p>
+                    <p>
+                      <span className="font-medium">
+                        {stats?.totalViewsByAuthor?._sum?.views || 0}
+                      </span>{" "}
+                      views
+                    </p>
                   </div>
                 </div>
-              ))
-            ) : (
-              <p className="text-center text-gray-400 py-10 italic">
-                এখনও কোনো মন্তব্য নেই।
-              </p>
+              </div>
+            </div>
+
+            {/* Ad After Content */}
+            {ads.afterArticle && (
+              <div className="w-full flex justify-center p-4">
+                <div dangerouslySetInnerHTML={{ __html: ads.afterArticle }} />
+              </div>
             )}
-          </div>
-        </article>
-        <RecentPost />
-      </main>
-    </div>
+
+            {/* Post Actions (Like) */}
+            <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-center"></div>
+            <div className="p-6   bg-white">
+              <div className="flex items-center gap-2  ">
+                <MessageSquare className="w-6 h-6 text-blue-600" />
+                <h2 className="text-2xl font-bold">মন্তব্য সমূহ</h2>
+              </div>
+
+              {/* Form Conditional Rendering */}
+              {user ? (
+                <form onSubmit={handleCommentSubmit} className="  space-y-4">
+                  <textarea
+                    placeholder="আপনার মন্তব্য লিখুন..."
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none min-h-[120px] transition-all"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 disabled:bg-gray-300 flex items-center gap-2 shadow-md shadow-blue-200"
+                  >
+                    {isSubmitting ? "পাঠানো হচ্ছে..." : "মন্তব্য জমা দিন"}{" "}
+                    <SendHorizontal className="w-4 h-4" />
+                  </button>
+                </form>
+              ) : (
+                <div className="mb-10 p-8 border-2 border-dashed border-blue-100 rounded-2xl text-center bg-blue-50/30">
+                  <LogIn className="w-10 h-10 text-blue-400 mx-auto mb-3" />
+                  <p className="text-gray-600 mb-4 font-medium">
+                    মন্তব্য বা লাইক দিতে আপনাকে লগইন করতে হবে।
+                  </p>
+                  <Link
+                    href="/auth"
+                    className="inline-block bg-blue-600 text-white px-8 py-2.5 rounded-xl font-bold hover:shadow-lg transition-all"
+                  >
+                    লগইন করুন
+                  </Link>
+                </div>
+              )}
+            </div>
+            {/* List */}
+            <div className="space-y-6 p-4">
+              {allComments.length > 0 ? (
+                allComments.map((comment: any) => (
+                  <div key={comment.id} className="flex flex-col gap-4 group">
+                    <div className="flex-grow">
+                      <div className="bg-gray-50 p-4  rounded-2xl group-hover:bg-gray-100 transition-colors border border-gray-100">
+                        <div className="flex gap-2 items-start mb-2">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center font-bold text-blue-700 shrink-0">
+                            {comment.authorName[0]}
+                          </div>
+                          <span className="font-bold text-gray-900">
+                            {comment.authorName}
+                          </span>
+                          <span className="text-[10px] text-gray-400">
+                            {new Date(comment.createdAt).toLocaleDateString(
+                              "bn-BD",
+                            )}
+                          </span>
+                        </div>
+                        <p className="text-gray-700 text-sm leading-relaxed">
+                          {comment.content}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-gray-400 py-10 italic">
+                  এখনও কোনো মন্তব্য নেই।
+                </p>
+              )}
+            </div>
+          </article>
+          <RecentPost />
+        </main>
+      )}
+    </>
   );
 };
 

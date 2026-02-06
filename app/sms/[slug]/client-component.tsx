@@ -23,12 +23,11 @@ export default function SmsCategoryClientComponent({
 
   return (
     <>
+      <Breadcrumb />
+
       {!isCreating ? (
         <div className="  bg-white shadow-sm border border-gray-300 rounded-sm">
           {/* Breadcrumb Area */}
-          <div className="p-2 text-sm text-[#003366] border-b border-gray-200 bg-white">
-            <Breadcrumb />
-          </div>
 
           {/* Main Header */}
           <div className="bg-[#EFEFEF] p-4 py-1.5 border-b border-gray-300 flex justify-between items-center">
@@ -53,7 +52,7 @@ export default function SmsCategoryClientComponent({
                   key={item.id}
                   className="p-4 hover:bg-gray-50 transition-colors"
                 >
-                  <SmsCard sms={item} index={index} />
+                  <SmsCard sms={item} />
                 </div>
               ))
             ) : (

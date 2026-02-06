@@ -6,13 +6,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 
-export default function SmsCard({
-  sms,
-  index = 0,
-}: {
-  index?: number;
-  sms: any;
-}) {
+export default function SmsCard({ sms, index }: { index?: number; sms: any }) {
   const { data: session } = useSession();
   const [isPending, startTransition] = useTransition();
   const [isEditing, setIsEditing] = useState(false);
@@ -58,7 +52,9 @@ export default function SmsCard({
         {/* কন্টেন্ট এরিয়া */}
         {!isEditing ? (
           <div className="text-[15px] leading-relaxed text-gray-800 mb-2">
-            <span className="text-red-600 font-bold mr-1">{index + 1})</span>
+            {index && (
+              <span className="text-red-600 font-bold mr-1">{index + 1})</span>
+            )}
             {sms?.content}
           </div>
         ) : (
@@ -127,7 +123,7 @@ export default function SmsCard({
           onClick={() => handleAction("DISLIKE")}
           className="hover:underline font-medium"
         >
-          Dislike ({sms?.dislikeCount || 0})
+          Dislike ({sms?.disLikeCount || 0})
         </button>
         <span className="text-gray-300">|</span>
 

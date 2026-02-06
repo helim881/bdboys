@@ -1,7 +1,6 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -26,7 +25,7 @@ const Footer = ({
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch("/api/categories");
+      const res = await fetch("/api/categories?type=POST");
       const data = await res.json();
       setCategories(data);
     } catch (err) {
@@ -64,46 +63,20 @@ const Footer = ({
           />
         </div>
       )}
-      <div className="  py-12">
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            <Link href="/" className="flex items-center gap-2">
-              {logo ? (
-                <div className="relative h-8 w-32">
-                  {" "}
-                  {/* Adjust width/height as needed */}
-                  <Image
-                    src={logo}
-                    alt={siteName || "Logo"}
-                    fill
-                    className="object-contain object-left"
-                    priority
-                  />
-                </div>
-              ) : (
-                <span className="text-2xl font-bold tracking-tighter">
-                  {siteName || "BDBOYS"}
-                </span>
-              )}
-            </Link>
-          </div>
-
-          <div>
-            {/* <h3 className="font-bold text-lg mb-4">ক্যাটেগরিসমূহ</h3> */}
-            <ul className="  grid grid-cols-2 gap-4">
-              {categories.map((cat, idx) => (
-                <li key={idx}>
-                  <Link
-                    href={`/category/${cat.slug}`}
-                    className="text-gray-600 hover:text-white transition-colors"
-                  >
-                    {cat.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+      <div className=" ">
+        {/* <h3 className="font-bold text-lg mb-4">ক্যাটেগরিসমূহ</h3> */}
+        <ul className="  grid grid-cols-2 gap-4 px-4">
+          {categories.map((cat, idx) => (
+            <li key={idx}>
+              <Link
+                href={`/category/${cat.slug}`}
+                className="text-gray-600 hover:text-white transition-colors"
+              >
+                {cat.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-600">
           <p>© ২০২৪ বাংলাভাষা. সমস্ত অধিকার সংরক্ষিত।</p>

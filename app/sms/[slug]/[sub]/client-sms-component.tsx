@@ -52,25 +52,26 @@ export default function ClientCmsComponent({
   // Pagination helper variables
   const page = meta?.page || 1;
   const totalPages = meta?.totalPages || 1;
-  console.log(meta);
+
   return (
     <main className="py-4">
       <Breadcrumb />
-
+      {isLoggedIn && (
+        <div className="w-full flex justify-end p-4">
+          <button
+            onClick={() => setIsCreating(!isCreating)}
+            className="text-blue-700 font-semibold text-sm hover:underline"
+          >
+            {isCreating ? "Back to sms" : "Create sms"}
+          </button>
+        </div>
+      )}
       <div className="bg-white border border-gray-300 shadow-sm">
         {/* SubCategory Title Header */}
         <div className="bg-[#EFEFEF] p-4 py-1.5 border-b border-gray-300 flex justify-between items-center">
           <h1 className="text-[15px] font-bold text-gray-800 uppercase tracking-tight">
             {subCategoryData.name}
           </h1>
-          {isLoggedIn && (
-            <button
-              onClick={() => setIsCreating(!isCreating)}
-              className="text-blue-700 font-semibold text-sm hover:underline"
-            >
-              {isCreating ? "Back to sms" : "Create sms"}
-            </button>
-          )}
         </div>
 
         {/* Content Section */}
@@ -80,7 +81,7 @@ export default function ClientCmsComponent({
               {subCategoryData.sms.length > 0 ? (
                 <>
                   {subCategoryData.sms.map((item, index) => (
-                    <SmsCard key={item.id} sms={item} index={index} />
+                    <SmsCard key={item.id} sms={item} />
                   ))}
 
                   {/* --- PAGINATION SECTION --- */}

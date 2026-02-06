@@ -20,7 +20,7 @@ async function getUser(id: string) {
   }
 
   const json = await res.json();
-  return json.data;
+  return json;
 }
 
 export default async function Page({ params }: PageProps) {
@@ -28,11 +28,11 @@ export default async function Page({ params }: PageProps) {
 
   if (!id) notFound();
 
-  const user = await getUser(id);
+  const json = await getUser(id);
 
   return (
     <div className="bg-gray-100 min-h-screen">
-      <ProfilePage user={user} />
+      <ProfilePage user={json?.data} postCount={json.postCount} />
     </div>
   );
 }

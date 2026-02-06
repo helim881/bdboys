@@ -146,14 +146,6 @@ export async function deleteSms(smsId: string) {
   const hasPrivilege = ["SUPER_ADMIN", "ADMIN", "EDITOR"].includes(userRole);
   const isOwner = userId === sms.authorId;
 
-  console.log("Debug Auth:", {
-    userRole,
-    userId,
-    smsAuthorId: sms.authorId,
-    hasPrivilege,
-    isOwner,
-  });
-
   if (!hasPrivilege && !isOwner) {
     return { error: "Unauthorized: You don't have permission." };
   }

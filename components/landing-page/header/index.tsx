@@ -24,7 +24,7 @@ export default function Header({
       .then((data) => {
         if (data.status === "active") setAdCode(data.code);
       });
-  }, []);
+  }, [session]);
 
   return (
     <header className="relative border">
@@ -73,6 +73,11 @@ export default function Header({
           <li className="hover:text-blue-400">
             <Link href="/sms">Sms Zone</Link>
           </li>
+          {session?.user && (
+            <li className="hover:text-blue-400">
+              <Link href={`/my/${session?.user.id}`}>Profile</Link>
+            </li>
+          )}
           <li className="hover:text-blue-400">
             <Link href="/posts">Recent Posts</Link>
           </li>

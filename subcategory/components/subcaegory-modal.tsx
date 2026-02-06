@@ -8,7 +8,7 @@ import { Loader2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-const SubCategoryModal = ({ onClose, onSuccess, initialData }: any) => {
+const SubCategoryModal = ({ onClose, onSuccess, initialData, type }: any) => {
   const [name, setName] = useState(initialData?.name || "");
   const [categoryId, setCategoryId] = useState(initialData?.categoryId || ""); // FIX: Added missing state
   const [categories, setCategories] = useState<any[]>([]);
@@ -17,7 +17,7 @@ const SubCategoryModal = ({ onClose, onSuccess, initialData }: any) => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch("/api/categories");
+      const response = await fetch(`/api/categories?type=${type}`);
       const data = await response.json();
       setCategories(data);
     } catch (error) {
