@@ -8,23 +8,27 @@ datasource db {
 }
 
 // ============== Auth Models ==============
-
 model User {
-  id            String     @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String?    @unique
-  emailVerified DateTime?  @map("email_verified")
-  password      String?    @default("")
-  image         String?    @map("avatar")
-  bio           String?
-  role          UserRole   @default(USER)
-  status        UserStatus @default(ACTIVE)
-  phone         String?
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  password      String?   @default("")
+  image         String?   @map("avatar")
+  about         String? // এটি প্রোফাইলের 'About' হিসেবে কাজ করবে
+
+  // নতুন ফিল্ড যোগ করুন এখানে
+  gender   String?
+  location String?
+
+  role   UserRole   @default(USER)
+  status UserStatus @default(ACTIVE)
+  phone  String?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  // Relations with Cascade
+  // Relations
   accounts Account[]
   sessions Session[]
   posts    Post[]
@@ -162,10 +166,6 @@ model Comment {
   // Optional: Link to a registered user
   userId String? @map("user_id")
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  // Fields for guest commenters
-  authorName  String? @map("author_name")
-  authorEmail String? @map("author_email")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

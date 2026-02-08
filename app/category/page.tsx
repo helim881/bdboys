@@ -1,4 +1,3 @@
-import Breadcrumb from "@/components/breadcumb";
 import PostCard from "@/components/landing-page/post-card";
 import prisma from "@/lib/db"; // Import your prisma client
 import { ApiResponse } from "@/types/common";
@@ -50,9 +49,7 @@ export default async function PostPortal() {
   const categoriesWithPosts = result.data;
 
   return (
-    <main className="container mx-auto px-4 py-6 space-y-8">
-      <Breadcrumb />
-
+    <main className="container mx-auto px-2 py-6 space-y-8">
       {categoriesWithPosts.length === 0 && (
         <p className="text-center text-gray-500 py-10">
           কোনো পোস্ট পাওয়া যায়নি।

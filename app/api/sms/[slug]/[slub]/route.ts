@@ -26,7 +26,7 @@ export async function GET(
           take: limit,
           skip,
           orderBy: { createdAt: "desc" },
-          include: { author: { select: { name: true } } },
+          include: { author: { select: { name: true, image: true } } },
         },
       },
     });

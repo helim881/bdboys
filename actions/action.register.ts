@@ -35,7 +35,7 @@ export async function updateUserAction(formData: any, userId: string) {
   try {
     let imageUrl = formData.image;
 
-    // 1. Image Upload
+    // 1. Image Upload Logic
     if (formData.image && formData.image.startsWith("data:image")) {
       const uploadResponse = await cloudinary.uploader.upload(formData.image, {
         folder: "user_profiles",
@@ -43,26 +43,35 @@ export async function updateUserAction(formData: any, userId: string) {
       imageUrl = uploadResponse.secure_url;
     }
 
-    // 2. Prepare Data Object (Added Role)
+    // 2. Prepare Data Object (নতুন অতিরিক্ত তথ্য সহ)
     const updateData: any = {
       name: formData.name,
       role: formData.role,
       image: imageUrl,
+
+      gender: formData.gender,
+      location: formData.location,
+      about: formData.about,
     };
 
+    // ৩. পাসওয়ার্ড আপডেট লজিক
     if (formData.password) {
       updateData.password = await bcrypt.hash(formData.password, 10);
     }
 
+    // ৪. ডাটাবেস আপডেট
     await prisma.user.update({
       where: { id: userId },
       data: updateData,
     });
 
+    // ৫. ক্যাশ ক্লিয়ার করা যাতে সাথে সাথে আপডেট দেখা যায়
     revalidatePath(`/profile/${userId}`);
+    revalidatePath(`/profile`); // প্রোফাইল পেজ যদি ডাইনামিক হয়
+
     return { success: true };
   } catch (error) {
-    console.error(error);
-    return { success: false, error: "Failed to update profile" };
+    console.error("USER_UPDATE_ACTION_ERROR:", error);
+    return { success: false, error: "প্রোফাইল আপডেট করতে সমস্যা হয়েছে।" };
   }
 }

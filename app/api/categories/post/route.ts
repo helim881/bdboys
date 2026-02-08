@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
         posts: {
           where: { status: "PUBLISHED" },
           include: { author: { select: { name: true } } },
-          take: 5,
+          take: 3,
           orderBy: { createdAt: "desc" },
         },
       },

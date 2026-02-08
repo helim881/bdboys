@@ -75,7 +75,7 @@ export default function Header({
           </li>
           {session?.user && (
             <li className="hover:text-blue-400">
-              <Link href={`/my/${session?.user.id}`}>Profile</Link>
+              <Link href={`/profile/${session?.user.id}`}>Profile</Link>
             </li>
           )}
           <li className="hover:text-blue-400">

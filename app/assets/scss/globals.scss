@@ -322,6 +322,9 @@ body {
 .no-scrollbar::-webkit-scrollbar-thumb {
   background-color: transparent;
 }
+.animate-bounce-short {
+  animation: bounce-short 0.4s ease-in-out;
+}
 /* Base styles */
 
 /* When not collapsed */

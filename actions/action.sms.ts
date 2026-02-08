@@ -47,6 +47,7 @@ export async function updateSmsAction(
     status: PostStatus;
   },
 ) {
+  console.log(data);
   try {
     await prisma.sms.update({
       where: { id },

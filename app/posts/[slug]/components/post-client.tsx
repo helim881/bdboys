@@ -8,7 +8,10 @@ import {
 import Breadcrumb from "@/components/breadcumb";
 import RecentPost from "@/components/recentpost";
 import {
+  ChevronRight,
+  Eye,
   Facebook,
+  FileText,
   Heart,
   HeartCrack,
   LogIn,
@@ -33,6 +36,7 @@ const PostClientView = ({
   post: any;
   stats?: any | { postCount: number; totalViewsByAuthor: number };
 }) => {
+  console.log(post);
   const [open, setOpen] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(post.likeCount || 0); // Local like count
@@ -130,11 +134,11 @@ const PostClientView = ({
   };
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.name) return alert("লগইন করুন");
+    if (!user?.id) return alert("লগইন করুন");
     if (!commentText.trim()) return;
 
     setIsSubmitting(true);
-    const result = await createComment(post.id, user?.name, commentText);
+    const result = await createComment(post.id, user?.id, commentText);
 
     if (result.success) {
       setAllComments([result.comment, ...allComments]);
@@ -160,6 +164,7 @@ const PostClientView = ({
     router.push("/posts");
   };
   const hasPrivilege = ["SUPER_ADMIN", "ADMIN", "EDITOR"].includes(user?.role);
+
   const isOwner = user?.id === post.authorId;
   return (
     <>
@@ -195,27 +200,26 @@ const PostClientView = ({
 
                 <span>Views: {post?.views ?? 0}</span>
 
-                {hasPrivilege ||
-                  (isOwner && (
-                    <div className="flex gap-4">
-                      <button
-                        onClick={() => setOpen(true)}
-                        className="text-green-200-600 hover:underline text-sm"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleRemove(post.slug)}
-                        className="text-red-600 hover:underline text-sm"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  ))}
+                {(hasPrivilege || isOwner) && (
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => setOpen(true)}
+                      className="text-green-200-600 hover:underline text-sm"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleRemove(post.slug)}
+                      className="text-red-600 hover:underline text-sm"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="relative h-64 md:h-96 overflow-hidden rounded-xl">
+            <div className="relative   h-64 md:h-96 overflow-hidden rounded-xl">
               <WatermarkedImage
                 src={post.image || "https://via.placeholder.com/1200x600"}
                 alt={post.title}
@@ -233,86 +237,133 @@ const PostClientView = ({
               {renderContentWithAds(post.contentHtml, ads.onArticle)}
             </div>
             {/* Author Meta & User Stats */}
-            <div className="p-4 border-y border-gray-100 flex flex-col   gap-6">
-              <div className="flex items-center gap-2  ">
-                <span className="text-xs font-bold text-gray-400 uppercase mr-1">
-                  শেয়ার:
+            <div className="px-4 flex flex-col   gap-2">
+              <div className="flex items-center gap-3 py-4 border-y border-gray-100 my-6">
+                <span className="text-[11px] font-black text-gray-500 uppercase tracking-widest mr-2">
+                  শেয়ার করুন:
                 </span>
-                <button
-                  onClick={shareOnFacebook}
-                  className="p-2 bg-[#1877F2] text-white rounded-full hover:scale-110 transition-transform"
-                >
-                  <Facebook className="w-4 h-4 fill-current" />
-                </button>
-                <button
-                  onClick={shareOnTwitter}
-                  className="p-2 bg-[#000000] text-white rounded-full hover:scale-110 transition-transform"
-                >
-                  <Twitter className="w-4 h-4 fill-current" />
-                </button>
-                <button
-                  onClick={shareOnWhatsApp}
-                  className="p-2 bg-[#25D366] text-white rounded-full hover:scale-110 transition-transform"
-                >
-                  <Send className="w-4 h-4 fill-current rotate-[-45deg] translate-x-0.5" />
-                </button>
-                <button
-                  className="border rounded-full  p-1 border-orange-600"
-                  onClick={handleLike}
-                >
-                  <span className="font-bold text-sm">
-                    {isLiked ? (
-                      <Heart
-                        className={`w-5 h-5 text-orange-600 transition-transform ${isLiked ? "fill-current scale-110" : "group-hover:scale-110 "}`}
-                      />
-                    ) : (
-                      <HeartCrack className="text-orange-600" />
-                    )}
-                  </span>
-                </button>
-              </div>
-              <div className="flex items-center space-x-4 p-4 bg-white rounded-lg shadow-sm border border-gray-100">
-                {/* Author Avatar */}
-                <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-blue-100 flex-shrink-0">
-                  {post.author?.image ? (
-                    <Image
-                      src={post.author.image}
-                      alt={post.author.name}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                      <User className="text-gray-400 w-7 h-7" />
-                    </div>
-                  )}
+
+                <div className="flex items-center gap-2">
+                  {/* Social Buttons (Same as before) */}
+                  <button
+                    onClick={shareOnFacebook}
+                    className="group p-2.5 bg-gray-50 hover:bg-[#1877F2] text-gray-600 hover:text-white rounded-xl transition-all duration-300"
+                  >
+                    <Facebook className="w-4 h-4 fill-none group-hover:fill-current" />
+                  </button>
+                  <button
+                    onClick={shareOnTwitter}
+                    className="group p-2.5 bg-gray-50 hover:bg-black text-gray-600 hover:text-white rounded-xl transition-all duration-300"
+                  >
+                    <Twitter className="w-4 h-4 fill-none group-hover:fill-current" />
+                  </button>
+                  <button
+                    onClick={shareOnWhatsApp}
+                    className="group p-2.5 bg-gray-50 hover:bg-[#25D366] text-gray-600 hover:text-white rounded-xl transition-all duration-300"
+                  >
+                    <Send className="w-4 h-4 rotate-[-45deg] translate-x-0.5" />
+                  </button>
                 </div>
 
-                {/* Author Info */}
-                <div className="flex-1 space-y-1">
-                  <Link href={`/my/${post?.author.id}`} className="block">
-                    <h4 className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors">
-                      {post.author?.name || "Anonymous"}
-                    </h4>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">
-                      {siteName}
-                    </p>
-                  </Link>
+                <div className="h-6 w-[1px] bg-gray-200 mx-2" />
 
-                  {/* Stats */}
-                  <div className="flex space-x-4 text-sm text-gray-600 mt-1">
-                    <p>
-                      <span className="font-medium">
-                        {stats?.authorPostCount || 0}
-                      </span>{" "}
-                      posts
-                    </p>
-                    <p>
-                      <span className="font-medium">
-                        {stats?.totalViewsByAuthor?._sum?.views || 0}
-                      </span>{" "}
-                      views
-                    </p>
+                {/* Like Button with Count */}
+                <button
+                  onClick={handleLike}
+                  className={`group flex items-center gap-2.5 px-4 py-2 rounded-full border transition-all duration-500 ${
+                    isLiked
+                      ? "bg-orange-50 border-orange-200 text-orange-600 shadow-sm"
+                      : "bg-white border-gray-200 text-gray-500 hover:border-orange-300 hover:bg-orange-50"
+                  }`}
+                >
+                  <div className="relative flex items-center justify-center">
+                    {isLiked ? (
+                      <Heart className="w-5 h-5 fill-current animate-bounce-short" />
+                    ) : (
+                      <HeartCrack className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold">|</span>
+
+                    <span
+                      className={`px-1.5 py-0.5 rounded-md text-xs font-black tracking-tighter ${
+                        isLiked
+                          ? "bg-orange-600 text-white"
+                          : "bg-gray-100 text-gray-600 group-hover:bg-orange-200"
+                      }`}
+                    >
+                      {post.likeCount > 0 ? post.likeCount : 0}
+                    </span>
+                  </div>
+                </button>
+              </div>
+              <div className="group relative bg-white border border-gray-100 rounded-2xl p-2 shadow-sm hover:shadow-md transition-all duration-300">
+                <div className="flex items-center gap-5">
+                  {/* Author Avatar - Advanced Styling */}
+                  <div className="relative">
+                    <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-blue-50 group-hover:ring-blue-100 transition-all duration-300 shadow-inner">
+                      {post.author?.image ? (
+                        <Image
+                          src={post.author.image}
+                          alt={post.author.name}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-200 flex items-center justify-center">
+                          <User className="text-gray-400 w-8 h-8" />
+                        </div>
+                      )}
+                    </div>
+                    {/* Verified Badge (Optional) */}
+                    <div className="absolute -bottom-1 -right-1 bg-blue-600 text-white p-1 rounded-lg border-2 border-white shadow-sm">
+                      <div className="w-2.5 h-2.5 bg-white rounded-full animate-pulse" />
+                    </div>
+                  </div>
+
+                  {/* Author Info & Stats */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <Link
+                          href={`/my/${post?.author.id}`}
+                          className="inline-flex items-center gap-1 group/name"
+                        >
+                          <h4 className="text-xl font-bold text-gray-900 group-hover/name:text-blue-600 transition-colors truncate">
+                            {post.author?.name || "Anonymous"}
+                          </h4>
+                          <ChevronRight className="w-4 h-4 text-gray-300 group-hover/name:text-blue-600 group-hover/name:translate-x-1 transition-all" />
+                        </Link>
+                        <p className="text-[10px] font-black text-blue-500 uppercase tracking-[2px] mt-0.5">
+                          Verified Author • {siteName}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Modern Stats Display */}
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-100">
+                        <FileText className="w-3.5 h-3.5 text-gray-400" />
+                        <span className="text-sm font-bold text-gray-700">
+                          {stats?.postCount || 0}
+                        </span>
+                        <span className="text-[11px] text-gray-500 font-medium">
+                          Posts
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 px-3   bg-gray-50 rounded-lg border border-gray-100">
+                        <Eye className="w-3.5 h-3.5 text-gray-400" />
+                        <span className="text-sm font-bold text-gray-700">
+                          {stats?.totalViewsByAuthor?._sum?.views || 0}
+                        </span>
+                        <span className="text-[11px] text-gray-500 font-medium">
+                          Views
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -374,20 +425,64 @@ const PostClientView = ({
                   <div key={comment.id} className="flex flex-col gap-4 group">
                     <div className="flex-grow">
                       <div className="bg-gray-50 p-4  rounded-2xl group-hover:bg-gray-100 transition-colors border border-gray-100">
-                        <div className="flex gap-2 items-start mb-2">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center font-bold text-blue-700 shrink-0">
-                            {comment.authorName[0]}
-                          </div>
-                          <span className="font-bold text-gray-900">
-                            {comment.authorName}
-                          </span>
-                          <span className="text-[10px] text-gray-400">
-                            {new Date(comment.createdAt).toLocaleDateString(
-                              "bn-BD",
+                        <div className="flex gap-3 items-center mb-3">
+                          {/* Avatar Section */}
+                          <div className="relative shrink-0">
+                            {comment.user?.image ? (
+                              <div className="w-8 h-8 rounded-full overflow-hidden ring-4 ring-blue-50 group-hover:ring-blue-100 transition-all duration-300 shadow-inner">
+                                {comment?.user?.image ? (
+                                  <Image
+                                    src={comment?.user?.image}
+                                    alt={post.author.name}
+                                    fill
+                                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-200 flex items-center justify-center">
+                                    <User className="text-gray-400 w-8 h-8" />
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-white text-sm shadow-sm ring-2 ring-white">
+                                {comment?.user?.name?.charAt(0).toUpperCase()}
+                              </div>
                             )}
-                          </span>
+
+                            {/* ছোট অনলাইন ডট বা স্ট্যাটাস (Optional) */}
+                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                          </div>
+
+                          {/* Name & Date Section */}
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-[15px] text-gray-900 leading-none hover:text-blue-600 cursor-pointer transition-colors">
+                                {comment?.user?.name}
+                              </span>
+                              {/* ভেরিফাইড ব্যাজ (যদি আপনার সিস্টেমে থাকে) */}
+                              <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  className="w-2 h-2 text-white fill-current"
+                                >
+                                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                                </svg>
+                              </div>
+                            </div>
+
+                            <span className="text-[11px] text-gray-400 mt-1 font-medium italic">
+                              {new Date(comment.createdAt).toLocaleDateString(
+                                "bn-BD",
+                                {
+                                  day: "numeric",
+                                  month: "long",
+                                  year: "numeric",
+                                },
+                              )}
+                            </span>
+                          </div>
                         </div>
-                        <p className="text-gray-700 text-sm leading-relaxed">
+                        <p className="text-gray-700 md:pl-8 text-sm leading-relaxed">
                           {comment.content}
                         </p>
                       </div>

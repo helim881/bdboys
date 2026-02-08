@@ -8,9 +8,11 @@ export async function GET(req: Request) {
       include: {
         sms: {
           where: { status: "PUBLISHED" },
-          take: 5,
+          take: 3,
           orderBy: { createdAt: "desc" },
-          include: { author: { select: { id: true, name: true } } },
+          include: {
+            author: { select: { id: true, name: true, image: true } },
+          },
         },
       },
     });

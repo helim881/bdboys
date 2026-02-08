@@ -155,6 +155,7 @@ export async function updateStatusAction(
   }
 }
 export async function toggleLike(postId: string, action: "like" | "unlike") {
+  console.log(postId);
   try {
     const updatedPost = await prisma.post.update({
       where: { id: postId },
@@ -166,7 +167,7 @@ export async function toggleLike(postId: string, action: "like" | "unlike") {
     });
 
     // Optional: if you want to revalidate the cache
-    // revalidatePath(`/post/${updatedPost.slug}`);
+    revalidatePath(`/post/${updatedPost.slug}`);
 
     return { success: true, newCount: updatedPost.likeCount };
   } catch (error) {
@@ -177,14 +178,14 @@ export async function toggleLike(postId: string, action: "like" | "unlike") {
 
 export async function createComment(
   postId: string,
-  authorName: string,
+  userId: string,
   content: string,
 ) {
   try {
     const comment = await prisma.comment.create({
       data: {
         postId,
-        authorName,
+        userId,
         content,
       },
     });

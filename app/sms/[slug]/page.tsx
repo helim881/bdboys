@@ -2,6 +2,7 @@ import ErrorPage from "@/components/error/error";
 import prisma from "@/lib/db";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import SmsPopularClient from "./[sub]/popular";
 import SmsCategoryClientComponent from "./client-component";
 
 export const dynamic = "force-dynamic";
@@ -97,32 +98,53 @@ type Props = {
 export default async function CategoryPageSms({ params }: Props) {
   const { slug, sub } = await params;
 
-  let category: Category | null = null;
+  // ১. স্টেট এবং ডাটা টাইপ ঠিক করা
+  let popularSmsData: any[] = [];
+  let categoryData: any = null;
 
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/sms/${slug}`,
-      { cache: "no-store" },
-    );
+    if (slug === "popular") {
+      // পপুলার রাউটের জন্য ফেচ
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/popular`, // আপনার তৈরি করা নতুন পপুলার রাউট
+        { cache: "no-store" },
+      );
 
-    if (!res.ok) throw new Error("Failed to fetch category");
+      if (!res.ok) throw new Error("Failed to fetch popular SMS");
+      const result = await res.json();
+      popularSmsData = result.data || [];
+    } else {
+      // রেগুলার ক্যাটাগরি রাউটের জন্য ফেচ
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/sms/${slug}`,
+        { cache: "no-store" },
+      );
 
-    const result: ApiResponse<Category> = await res.json();
+      if (!res.ok) throw new Error("Failed to fetch category");
+      const result = await res.json();
 
-    if (!result.success || !result.data) throw new Error("Category not found");
-
-    category = result?.data;
+      if (!result.success || !result.data)
+        throw new Error("Category not found");
+      categoryData = result.data;
+    }
   } catch (error) {
-    console.error("CATEGORY_FETCH_ERROR:", error);
+    console.error("FETCH_ERROR:", error);
     return <ErrorPage />;
   }
-  if (!category) {
+
+  // ক্যাটাগরি না পাওয়া গেলে ৪-৪
+  if (slug !== "popular" && !categoryData) {
     notFound();
   }
 
   return (
-    <main className="bg-gray-100 min-h-screen   px-4">
-      <SmsCategoryClientComponent category={category} slug={slug} />
+    <main className="bg-gray-100 min-h-screen  py-6">
+      {slug === "popular" ? (
+        <SmsPopularClient />
+      ) : (
+        /* ৩. নরমাল ক্যাটাগরি রেন্ডারিং */
+        <SmsCategoryClientComponent category={categoryData} slug={slug} />
+      )}
     </main>
   );
 }

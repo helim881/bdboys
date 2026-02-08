@@ -1,5 +1,6 @@
+import defaultImg from "@/public/bdbboys-logo-og.png";
+import Image from "next/image";
 import Link from "next/link";
-
 export default function PostCard({
   post,
   list = false,
@@ -14,11 +15,19 @@ export default function PostCard({
     >
       {/* Image Box */}
       <div className="w-24 h-24 bg-gray-200 flex-shrink-0 border border-gray-300 rounded overflow-hidden relative">
-        <img
-          src={post.image}
-          alt={post.title}
-          className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-300"
-        />
+        {post?.image ? (
+          <img
+            src={post.image}
+            alt={post.title}
+            className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-300"
+          />
+        ) : (
+          <Image
+            src={defaultImg}
+            alt={post.title}
+            className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-300"
+          />
+        )}
       </div>
 
       {/* Post Content */}

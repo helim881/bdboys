@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import SearchInput from "../search-input";
 
 const Footer = ({
   logo,
@@ -54,7 +55,7 @@ const Footer = ({
   }, []);
 
   return (
-    <footer className="bg-gray-900/10   mt-12">
+    <footer className="">
       {adCode && (
         <div className="container    pt-8 flex justify-center">
           <div
@@ -63,7 +64,8 @@ const Footer = ({
           />
         </div>
       )}
-      <div className=" ">
+      <SearchInput />
+      <div className=" bg-gray-900/10  mt-12">
         {/* <h3 className="font-bold text-lg mb-4">ক্যাটেগরিসমূহ</h3> */}
         <ul className="  grid grid-cols-2 gap-4 px-4">
           {categories.map((cat, idx) => (
