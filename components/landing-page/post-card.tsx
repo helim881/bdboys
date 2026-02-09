@@ -14,7 +14,7 @@ export default function PostCard({
   return (
     <div
       key={post.id}
-      className="flex p-4 gap-4 hover:bg-blue-50/30 transition-colors group cursor-pointer items-start"
+      className="flex p-4 gap-4 bg-slate-50 mb-4 hover:bg-blue-50/30 transition-colors group cursor-pointer items-start"
     >
       {/* 1. Index Numbering */}
       {typeof index === "number" && (

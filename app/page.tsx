@@ -19,7 +19,7 @@ export default async function HomePage({
     });
 
     return (
-      <div className="search-results">
+      <div className="search-results mt-4 border rounded-md p-4">
         <h2>Search Results for: {query}</h2>
         {posts.length > 0 ? (
           posts.map((post) => <PostCard key={post.id} post={post} />)

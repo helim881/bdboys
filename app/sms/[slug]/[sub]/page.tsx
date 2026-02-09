@@ -49,7 +49,7 @@ export default async function SubCategoryPage({ params, searchParams }: Props) {
   try {
     // 2. Dynamic fetch using the currentPage
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/sms/${slug}/${decodedSub}?page=${currentPage}&limit=${1}`,
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/sms/${slug}/${decodedSub}?page=${currentPage}&limit=${15}`,
       { cache: "no-store" },
     );
 

@@ -51,7 +51,6 @@ export default function SingleUserPostsTab({ userId }: { userId: string }) {
     element?.scrollIntoView({ behavior: "smooth" });
   };
 
-  console.log(posts);
   return (
     <div className="w-full py-4 min-h-[400px]">
       <div id="posts-tab-top" /> {/* Scroll anchor */}

@@ -123,7 +123,7 @@ export default function ProfilePage({ user }: { user: any }) {
               <ProfileRow label="Rank" value={user?.role} isGray />
               <ProfileRow label="Gender" value={user?.gender} />
               <ProfileRow label="Location" value={user?.location} isGray />
-              <ProfileRow label="About" value={user?.bio} />
+              <ProfileRow label="About" value={user?.about} />
 
               {/* ID Card */}
               <div className="p-4">

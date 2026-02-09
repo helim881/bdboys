@@ -56,7 +56,7 @@ export default function ProfilePage({
                 value={user?.location || "Not Set"}
                 isGray
               />
-              <ProfileRow label="About" value={user?.bio} />
+              <ProfileRow label="About" value={user?.about} />
             </div>
 
             {/* Visual ID Card Section */}
