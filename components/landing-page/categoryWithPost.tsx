@@ -6,7 +6,7 @@ export default function CategoryWithPost({
   index,
 }: {
   category: any;
-  index: number;
+  index?: number;
 }) {
   return (
     <section

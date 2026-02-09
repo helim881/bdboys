@@ -56,17 +56,26 @@ export default function ClientCmsComponent({
   return (
     <main className="py-4">
       <Breadcrumb />
-      {isLoggedIn && (
-        <div className="w-full flex justify-end p-4">
-          <button
-            onClick={() => setIsCreating(!isCreating)}
-            className="text-blue-700 font-semibold text-sm hover:underline"
+      {isLoggedIn ? (
+        <CreateSms
+          categoryId={subCategoryData?.categoryId}
+          subCategoryId={subCategoryData?.id}
+          setIsCreating={setIsCreating}
+        />
+      ) : (
+        <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+          <p className="text-gray-500 mb-3 text-sm font-medium">
+            নতুন মেসেজ যোগ করতে লগইন করুন
+          </p>
+          <Link
+            href="/auth"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full font-bold text-sm transition-all shadow-md active:scale-95"
           >
-            {isCreating ? "Back to sms" : "Create sms"}
-          </button>
+            Please Login to Create
+          </Link>
         </div>
       )}
-      <div className="bg-white border border-gray-300 shadow-sm">
+      <div className="bg-white border border-gray-300 shadow-sm mt-2">
         {/* SubCategory Title Header */}
         <div className="bg-[#EFEFEF] p-4 py-1.5 border-b border-gray-300 flex justify-between items-center">
           <h1 className="text-[15px] font-bold text-gray-800 uppercase tracking-tight">
@@ -75,69 +84,62 @@ export default function ClientCmsComponent({
         </div>
 
         {/* Content Section */}
-        {!isCreating ? (
-          <div>
-            <div className="bg-white">
-              {subCategoryData.sms.length > 0 ? (
-                <>
-                  {subCategoryData.sms.map((item, index) => (
-                    <SmsCard key={item.id} sms={item} />
-                  ))}
 
-                  {/* --- PAGINATION SECTION --- */}
-                  {totalPages > 1 && (
-                    <div className="flex justify-center items-center gap-2 py-4 bg-[#f9f9f9] border-t border-gray-200">
-                      <Link
-                        href={`${basePath}?page=${page - 1}`}
-                        className={`px-3 py-1 text-xs font-bold border rounded uppercase transition ${
-                          page <= 1
-                            ? "bg-gray-100 text-gray-400 pointer-events-none border-gray-200"
-                            : "bg-white text-blue-700 border-gray-300 hover:bg-blue-50"
-                        }`}
-                      >
-                        « Prev
-                      </Link>
+        <div>
+          <div className="bg-white">
+            {subCategoryData.sms.length > 0 ? (
+              <>
+                {subCategoryData.sms.map((item, index) => (
+                  <SmsCard key={item.id} sms={item} index={index} />
+                ))}
 
-                      <div className="text-[12px] font-bold text-gray-600 px-2 uppercase">
-                        Page {page} of {totalPages}
-                      </div>
+                {/* --- PAGINATION SECTION --- */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center items-center gap-2 py-4 bg-[#f9f9f9] border-t border-gray-200">
+                    <Link
+                      href={`${basePath}?page=${page - 1}`}
+                      className={`px-3 py-1 text-xs font-bold border rounded uppercase transition ${
+                        page <= 1
+                          ? "bg-gray-100 text-gray-400 pointer-events-none border-gray-200"
+                          : "bg-white text-blue-700 border-gray-300 hover:bg-blue-50"
+                      }`}
+                    >
+                      « Prev
+                    </Link>
 
-                      <Link
-                        href={`${basePath}?page=${page + 1}`}
-                        className={`px-3 py-1 text-xs font-bold border rounded uppercase transition ${
-                          page >= totalPages
-                            ? "bg-gray-100 text-gray-400 pointer-events-none border-gray-200"
-                            : "bg-white text-blue-700 border-gray-300 hover:bg-blue-50"
-                        }`}
-                      >
-                        Next »
-                      </Link>
+                    <div className="text-[12px] font-bold text-gray-600 px-2 uppercase">
+                      Page {page} of {totalPages}
                     </div>
-                  )}
-                </>
-              ) : (
-                <div className="p-10 text-center text-gray-400 italic text-sm">
-                  No SMS found in this category.
-                </div>
-              )}
-            </div>
 
-            {/* Footer Bar */}
-            <div className="bg-[#eeeeee] py-1 text-center border-t border-gray-300">
-              <span className="text-[11px] text-gray-500 uppercase font-bold tracking-tight">
-                {page < totalPages
-                  ? `More on Page ${page + 1}`
-                  : `End of ${subCategoryData.name}`}
-              </span>
-            </div>
+                    <Link
+                      href={`${basePath}?page=${page + 1}`}
+                      className={`px-3 py-1 text-xs font-bold border rounded uppercase transition ${
+                        page >= totalPages
+                          ? "bg-gray-100 text-gray-400 pointer-events-none border-gray-200"
+                          : "bg-white text-blue-700 border-gray-300 hover:bg-blue-50"
+                      }`}
+                    >
+                      Next »
+                    </Link>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="p-10 text-center text-gray-400 italic text-sm">
+                No SMS found in this category.
+              </div>
+            )}
           </div>
-        ) : (
-          <CreateSms
-            categoryId={subCategoryData?.categoryId}
-            subCategoryId={subCategoryData?.id}
-            setIsCreating={setIsCreating}
-          />
-        )}
+
+          {/* Footer Bar */}
+          <div className="bg-[#eeeeee] py-1 text-center border-t border-gray-300">
+            <span className="text-[11px] text-gray-500 uppercase font-bold tracking-tight">
+              {page < totalPages
+                ? `More on Page ${page + 1}`
+                : `End of ${subCategoryData.name}`}
+            </span>
+          </div>
+        </div>
       </div>
     </main>
   );

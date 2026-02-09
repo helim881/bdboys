@@ -62,7 +62,6 @@ export default async function PostPortal() {
             {/* Header */}
             <div className="bg-[#E9F1F7] px-4 py-2 flex justify-between items-center border-b border-[#B8D1E5]">
               <h2 className="text-[#003366] font-bold text-lg flex items-center gap-2">
-                <span className="text-orange-700">{index + 1}.</span>
                 {category.name}
               </h2>
               <Link

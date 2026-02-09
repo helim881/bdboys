@@ -46,11 +46,7 @@ export default function PostPortal() {
       ) : (
         <div className="space-y-8 animate-in fade-in duration-500">
           {categories.map((category: any, index) => (
-            <CategoryWithPost
-              key={category.id}
-              category={category}
-              index={index}
-            />
+            <CategoryWithPost key={category.id} category={category} />
           ))}
         </div>
       )}

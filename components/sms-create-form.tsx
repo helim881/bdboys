@@ -5,6 +5,7 @@ import { Loader2, Save } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { Dispatch, SetStateAction, useState } from "react";
 import toast from "react-hot-toast";
+import { Input } from "./ui/input";
 
 const CreateSms = ({
   categoryId,
@@ -75,8 +76,7 @@ const CreateSms = ({
         <label className="block text-sm font-bold text-[#003366] mb-2">
           এসএমএস কন্টেন্ট
         </label>
-        <textarea
-          rows={10}
+        <Input
           value={formData.content}
           onChange={(e) =>
             setFormData({ ...formData, content: e.target.value })
@@ -88,7 +88,7 @@ const CreateSms = ({
       </div>
 
       {/* Submit Button */}
-      <div className="flex justify-end pt-4 border-t border-gray-100">
+      <div className="flex justify-START pt-2 mb-2 border-t border-gray-100">
         <button
           type="submit"
           disabled={isSubmitting}
